@@ -8,27 +8,35 @@ import { CaixaFundo, CaixaFrente, CaixaTampa, Coracao, Faisca } from "./motifs";
 /**
  * A cerimônia do envio.
  *
- * A mensagem do convidado é escrita à mão num papel, o papel é dobrado em
- * três, entra num envelope lacrado com um coração, o Heitor guarda o
- * envelope e o presente dentro da caixa, a tampa desce e a caixa parte.
+ * Todas as peças vivem no mesmo plano, empilhadas por z-index. É isso que
+ * permite uma coisa entrar dentro da outra: a carta dobrada desce e passa por
+ * trás da frente do envelope; o envelope desce e passa por trás da frente da
+ * caixa. Nada é escondido por opacidade — some porque entrou.
  *
- * A caixa é montada em três camadas — fundo, carga, frente — para que o
- * envelope e o presente realmente desapareçam *dentro* dela.
+ *   z1 fundo da caixa
+ *   z2 fundo do envelope
+ *   z3 carta · presente
+ *   z4 frente do envelope   ← engole a carta
+ *   z5 aba · lacre
+ *   z7 frente da caixa      ← engole o envelope e o presente
+ *   z8 tampa
+ *   z9 Heitor
  */
 
 const ETAPAS = [
-  "papel",
-  "texto",
-  "assinatura",
-  "ler", // a carta fica parada, inteira, para ser lida
-  "dobra",
-  "envelope",
-  "lacre",
-  "caixa",
-  "guardar",
-  "presente",
-  "fechar",
-  "enviar",
+  "papel", // o papel em branco aparece
+  "texto", // a mensagem se escreve
+  "assinatura", // o nome se assina
+  "ler", // a carta fica inteira, parada
+  "dobra", // o papel é dobrado — e continua na tela
+  "envelope", // o envelope aberto aparece embaixo
+  "carta-entra", // a carta dobrada é colocada dentro
+  "lacre", // a aba fecha e o coração sela
+  "caixa", // a caixa aberta chega; o envelope sobe para dar lugar
+  "guardar", // o Heitor guarda o envelope
+  "presente", // e guarda o presente
+  "fechar", // a tampa desce
+  "enviar", // a caixa segue destino
   "obrigado",
 ] as const;
 
@@ -38,15 +46,16 @@ const DURACAO: Record<Etapa, number> = {
   papel: 900,
   texto: 2400,
   assinatura: 2000,
-  ler: 1600,
-  dobra: 1200,
+  ler: 1500,
+  dobra: 1400,
   envelope: 1100,
-  lacre: 900,
-  caixa: 900,
+  "carta-entra": 1300,
+  lacre: 1300,
+  caixa: 1200,
   guardar: 1400,
-  presente: 1200,
-  fechar: 900,
-  enviar: 1500,
+  presente: 1300,
+  fechar: 1000,
+  enviar: 1600,
   obrigado: 0,
 };
 
@@ -81,36 +90,76 @@ export function Cerimonia({
     return () => clearTimeout(t);
   }, [rodando, i, onFim]);
 
-  const passou = useMemo(
+  const em = useMemo(
     () => (e: Etapa) => ETAPAS.indexOf(etapa) >= ETAPAS.indexOf(e),
     [etapa]
   );
 
-  const dobrado = passou("dobra");
-  const noEnvelope = passou("envelope");
-  const lacrado = passou("lacre");
-  const temCaixa = passou("caixa");
-  const guardado = passou("guardar");
-  const comPresente = passou("presente");
-  const fechada = passou("fechar");
-  const enviada = passou("enviar");
+  const dobrado = em("dobra");
+  const temEnvelope = em("envelope");
+  const cartaDentro = em("carta-entra");
+  const lacrado = em("lacre");
+  const temCaixa = em("caixa");
+  const envelopeGuardado = em("guardar");
+  const presenteGuardado = em("presente");
+  const fechada = em("fechar");
+  const enviada = em("enviar");
   const fim = etapa === "obrigado";
+
+  /* ── onde cada peça está, em cada momento ─────────────────── */
+
+  const papel = cartaDentro
+    ? { left: 30, width: 40, top: 72 } // dentro do envelope, atrás do bolso
+    : temEnvelope
+      ? { left: 30, width: 40, top: 22 } // dobrado, esperando acima
+      : dobrado
+        ? { left: 26, width: 48, top: 32 } // acabou de dobrar
+        : { left: 19, width: 62, top: 6 }; // aberto
+
+  const envelope = envelopeGuardado
+    ? { left: 27, width: 46, top: 74 } // dentro da caixa, atrás da frente
+    : temCaixa
+      ? { left: 27, width: 46, top: 12 } // subiu, dando lugar à caixa
+      : temEnvelope
+        ? { left: 20, width: 60, top: 50 } // aberto, em cena
+        : { left: 20, width: 60, top: 64 }; // ainda fora
 
   return (
     <div className="cena" aria-live="polite">
-      {/* ── o papel ─────────────────────────────────────────── */}
-      <div className="ator papel-palco" data-dobrado={dobrado} data-guardado={noEnvelope} data-on={rodando}>
+      {/* ── z1 · fundo da caixa ───────────────────────────── */}
+      <div className="caixa-peca fundo" data-on={temCaixa} data-enviada={enviada}>
+        <CaixaFundo />
+      </div>
+
+      {/* ── z2 · fundo do envelope ────────────────────────── */}
+      <div
+        className="env-peca env-fundo"
+        style={posicao(envelope)}
+        data-on={temEnvelope}
+        data-enviada={enviada}
+      >
+        <svg viewBox="0 0 220 150" aria-hidden>
+          <rect x={4} y={10} width={212} height={134} rx={3} fill="#f6efe2" stroke="#b3926f" strokeWidth={1.6} />
+        </svg>
+      </div>
+
+      {/* ── z3 · a carta ──────────────────────────────────── */}
+      <div
+        className="papel-palco"
+        style={posicao(papel)}
+        data-on={rodando}
+        data-dobrado={dobrado}
+        data-enviada={enviada}
+      >
         <div className="papel">
           {[0, 1, 2].map((p) => (
             <div className="painel" key={p} data-p={p}>
-              {/* a altura do conteúdo é 300% do painel, então cada terço
-                  é 33,33% da própria altura — não 100% */}
               <div className="conteudo" style={{ transform: `translateY(-${p * 33.3333}%)` }}>
-                <p className="corpo" data-escrito={passou("texto")}>
+                <p className="corpo" data-escrito={em("texto")}>
                   {mensagem || "…"}
                 </p>
                 <div className="assina">
-                  <span className="nome" data-escrito={passou("assinatura")}>
+                  <span className="nome" data-escrito={em("assinatura")}>
                     {nome || "sua família"}
                   </span>
                 </div>
@@ -122,58 +171,64 @@ export function Cerimonia({
         </div>
       </div>
 
-      {/* ── a caixa, em camadas ─────────────────────────────── */}
-      <div className="ator caixa-palco" data-on={temCaixa} data-enviada={enviada}>
-        <div className="caixa">
-          <CaixaFundo className="camada" />
-
-          <div className="carga">
-            {/* o envelope desce para dentro */}
-            <div className="envelope" data-on={noEnvelope} data-dentro={guardado}>
-              <svg viewBox="0 0 220 150" aria-hidden>
-                <rect x={4} y={16} width={212} height={128} rx={3} fill="#fdfaf4" stroke="#b3926f" strokeWidth={1.6} />
-                <path d="M 4 144 L 84 74 M 216 144 L 136 74" stroke="#b3926f" strokeWidth={1.1} opacity={0.4} />
-                <path
-                  className="aba"
-                  data-fechada={lacrado}
-                  d="M 4 16 L 110 88 L 216 16"
-                  fill="#f0d8b6"
-                  fillOpacity={0.45}
-                  stroke="#b3926f"
-                  strokeWidth={1.6}
-                  strokeLinejoin="round"
-                />
-              </svg>
-              <span className="lacre" data-on={lacrado}>
-                <Coracao />
-              </span>
-            </div>
-
-            {/* e o presente atrás dele */}
-            <div className="produto" data-dentro={comPresente}>
-              <Image src={presenteSrc} alt={presenteNome} width={260} height={260} />
-            </div>
-          </div>
-
-          <CaixaFrente className="camada frente" />
-          <CaixaTampa className="camada tampa" data-fechada={fechada} />
-        </div>
+      {/* ── z3 · o presente ───────────────────────────────── */}
+      <div className="produto" data-dentro={presenteGuardado} data-enviada={enviada}>
+        <Image src={presenteSrc} alt={presenteNome} width={280} height={280} />
       </div>
 
-      {/* ── o Heitor ────────────────────────────────────────── */}
-      <div className="ator bebe-palco" data-on={temCaixa && !enviada} data-guardando={guardado && !fechada}>
+      {/* ── z4/z5 · frente do envelope, aba e lacre ───────── */}
+      <div
+        className="env-peca env-frente"
+        style={posicao(envelope)}
+        data-on={temEnvelope}
+        data-enviada={enviada}
+      >
+        <svg viewBox="0 0 220 150" aria-hidden>
+          {/* a aba: aberta aponta para cima, fechada desce sobre a boca */}
+          <path
+            className="aba"
+            data-fechada={lacrado}
+            d="M 4 10 L 110 82 L 216 10 Z"
+            fill="#f0d8b6"
+            fillOpacity={0.55}
+            stroke="#b3926f"
+            strokeWidth={1.6}
+            strokeLinejoin="round"
+          />
+          {/* o bolso — é ele que engole a carta */}
+          <path d="M 4 54 L 216 54 L 216 144 L 4 144 Z" fill="#fdfaf4" stroke="#b3926f" strokeWidth={1.6} />
+          <path d="M 4 144 L 90 76 M 216 144 L 130 76" stroke="#b3926f" strokeWidth={1} opacity={0.35} />
+        </svg>
+        <span className="lacre" data-on={lacrado}>
+          <Coracao />
+        </span>
+      </div>
+
+      {/* ── z7/z8 · frente e tampa da caixa ───────────────── */}
+      <div className="caixa-peca frente" data-on={temCaixa} data-enviada={enviada}>
+        <CaixaFrente />
+      </div>
+      <div
+        className="caixa-peca tampa"
+        data-on={temCaixa}
+        data-fechada={fechada}
+        data-enviada={enviada}
+      >
+        <CaixaTampa />
+      </div>
+
+      {/* ── z9 · o Heitor ─────────────────────────────────── */}
+      <div className="bebe" data-on={temCaixa && !enviada} data-guardando={envelopeGuardado && !fechada}>
         <Baby pose="alcancando" roupa="#d1e2f3" />
       </div>
 
-      {/* ── as faíscas do envio ─────────────────────────────── */}
-      <div className="ator faiscas" data-on={enviada}>
+      <div className="faiscas" data-on={enviada}>
         {[0, 1, 2, 3, 4].map((n) => (
           <Faisca key={n} className={`f f${n}`} />
         ))}
       </div>
 
-      {/* ── o agradecimento ─────────────────────────────────── */}
-      <div className="ator obrigado" data-on={fim}>
+      <div className="obrigado" data-on={fim}>
         <p className="l1">Chegou.</p>
         <p className="l2">
           Obrigado por fazer parte desse momento tão especial. Heitor já tem mais um
@@ -189,41 +244,25 @@ export function Cerimonia({
           max-width: 460px;
           margin-inline: auto;
           perspective: 1400px;
-          isolation: isolate;
+          --calmo: cubic-bezier(0.22, 1, 0.36, 1);
         }
-        .ator {
-          position: absolute;
-          inset: 0;
-        }
+        .cena :global(svg) { width: 100%; height: auto; display: block; }
 
-        /* ── papel ─────────────────────────────────────────── */
+        /* ── carta ─────────────────────────────────────────── */
         .papel-palco {
-          display: grid;
-          place-items: center;
-          z-index: 4;
+          position: absolute;
+          z-index: 3;
           opacity: 0;
-          transform: translateY(18px);
-          transition: opacity 600ms ease, transform 700ms cubic-bezier(0.22, 1, 0.36, 1);
+          transition: left 900ms var(--calmo), top 900ms var(--calmo),
+            width 900ms var(--calmo), opacity 500ms ease;
         }
-        .papel-palco[data-on="true"] {
-          opacity: 1;
-          transform: none;
-        }
+        .papel-palco[data-on="true"] { opacity: 1; }
         .papel {
           position: relative;
-          width: 68%;
+          width: 100%;
           aspect-ratio: 3 / 4.2;
           transform-style: preserve-3d;
-          transition: transform 900ms cubic-bezier(0.22, 1, 0.36, 1), opacity 500ms ease;
-          filter: drop-shadow(0 16px 30px rgba(43, 33, 25, 0.22));
-        }
-        .papel-palco[data-dobrado="true"] .papel {
-          transform: translateY(8%) scale(0.9);
-        }
-        .papel-palco[data-guardado="true"] .papel {
-          transform: translateY(26%) scale(0.5);
-          opacity: 0;
-          transition-delay: 200ms;
+          filter: drop-shadow(0 14px 26px rgba(43, 33, 25, 0.2));
         }
         .painel {
           position: absolute;
@@ -256,10 +295,9 @@ export function Cerimonia({
           flex-direction: column;
           justify-content: space-between;
         }
-        /* a mensagem sai na letra manuscrita… */
         .corpo {
           font-family: var(--font-mao-b);
-          font-size: clamp(0.95rem, 3.6vw, 1.22rem);
+          font-size: clamp(0.95rem, 3.5vw, 1.2rem);
           line-height: 1.6;
           color: #35405c;
           clip-path: inset(0 100% 0 0);
@@ -267,11 +305,10 @@ export function Cerimonia({
         .corpo[data-escrito="true"] {
           animation: escrever-carta 2.2s cubic-bezier(0.5, 0, 0.4, 1) forwards;
         }
-        /* …e o nome, embaixo, na letra de assinatura */
         .assina { align-self: flex-end; padding-right: 3%; }
         .nome {
           font-family: var(--font-mao);
-          font-size: clamp(1.05rem, 4vw, 1.45rem);
+          font-size: clamp(1rem, 3.8vw, 1.4rem);
           color: #1f3b52;
           display: inline-block;
           clip-path: inset(0 100% 0 0);
@@ -295,131 +332,102 @@ export function Cerimonia({
         .v2 { top: 66.66%; }
         .papel-palco[data-dobrado="true"] .vinco { opacity: 1; }
 
-        /* ── caixa ─────────────────────────────────────────── */
-        .caixa-palco {
-          display: grid;
-          place-items: end center;
-          padding-bottom: 8%;
-          z-index: 3;
-          opacity: 0;
-          transform: translateY(16%);
-          transition: opacity 600ms ease, transform 1000ms cubic-bezier(0.22, 1, 0.36, 1);
-        }
-        .caixa-palco[data-on="true"] { opacity: 1; transform: none; }
-        .caixa-palco[data-enviada="true"] {
-          transform: translateY(-120%) rotate(-7deg) scale(0.66);
-          opacity: 0;
-          transition: transform 1400ms cubic-bezier(0.5, 0, 0.2, 1), opacity 500ms ease 950ms;
-        }
-        .caixa {
-          position: relative;
-          width: 68%;
-          aspect-ratio: 260 / 220;
-        }
-        .caixa :global(.camada) {
+        /* ── envelope ──────────────────────────────────────── */
+        .env-peca {
           position: absolute;
-          inset: 0;
-          width: 100%;
-          height: 100%;
-        }
-        .caixa :global(.frente) { z-index: 3; }
-        .caixa :global(.tampa) {
-          z-index: 4;
-          transform: translate(10%, -13%) rotate(-7deg);
-          transition: transform 800ms cubic-bezier(0.5, 0, 0.3, 1);
-        }
-        .caixa :global(.tampa[data-fechada="true"]) {
-          transform: none;
-        }
-        .carga {
-          position: absolute;
-          inset: 0;
-          z-index: 2;
-        }
-
-        .envelope {
-          position: absolute;
-          left: 22%;
-          width: 56%;
-          top: -46%;
           opacity: 0;
-          transform: rotate(-4deg);
-          transition: opacity 400ms ease, top 900ms cubic-bezier(0.5, 0, 0.4, 1),
-            transform 900ms ease;
+          transition: left 900ms var(--calmo), top 900ms var(--calmo),
+            width 900ms var(--calmo), opacity 600ms ease;
         }
-        .envelope[data-on="true"] { opacity: 1; }
-        .envelope[data-dentro="true"] {
-          top: 26%;
-          transform: rotate(2deg) scale(0.86);
-        }
-        .envelope :global(svg) { width: 100%; height: auto; display: block; }
+        .env-peca[data-on="true"] { opacity: 1; }
+        .env-fundo { z-index: 2; }
+        .env-frente { z-index: 4; }
         .aba {
-          transform-origin: center 16px;
+          transform-origin: center 10px;
           transform: rotateX(180deg);
-          transition: transform 700ms cubic-bezier(0.22, 1, 0.36, 1);
+          transition: transform 800ms cubic-bezier(0.34, 1.2, 0.64, 1);
         }
         .aba[data-fechada="true"] { transform: rotateX(0deg); }
         .lacre {
           position: absolute;
-          left: 47%;
-          top: 52%;
-          width: 11%;
+          left: 44%;
+          top: 44%;
+          width: 12%;
           color: #b04a4a;
           opacity: 0;
           transform: scale(0.3);
           transition: opacity 300ms ease, transform 500ms cubic-bezier(0.34, 1.56, 0.64, 1);
+          z-index: 5;
         }
-        .lacre[data-on="true"] { opacity: 1; transform: scale(1); transition-delay: 400ms; }
-        .lacre :global(svg) { width: 100%; height: auto; }
+        .lacre[data-on="true"] { opacity: 1; transform: scale(1); transition-delay: 500ms; }
 
+        /* ── presente ──────────────────────────────────────── */
         .produto {
           position: absolute;
-          left: 30%;
-          width: 40%;
-          top: -52%;
+          left: 34%;
+          width: 32%;
+          top: 18%;
           opacity: 0;
-          transition: opacity 300ms ease, top 850ms cubic-bezier(0.5, 0, 0.4, 1);
+          z-index: 3;
+          transition: opacity 350ms ease, top 900ms cubic-bezier(0.5, 0, 0.35, 1);
         }
-        .produto[data-dentro="true"] { opacity: 1; top: 20%; }
-        .produto :global(img) {
-          width: 100%;
-          height: auto;
-          filter: drop-shadow(0 8px 12px rgba(43, 33, 25, 0.2));
+        .produto[data-dentro="true"] { opacity: 1; top: 74%; }
+        .produto :global(img) { width: 100%; height: auto; }
+
+        /* ── caixa ─────────────────────────────────────────── */
+        .caixa-peca {
+          position: absolute;
+          left: 16%;
+          width: 68%;
+          top: 52%;
+          opacity: 0;
+          transform: translateY(14%);
+          transition: opacity 600ms ease, transform 1000ms var(--calmo);
+        }
+        .caixa-peca[data-on="true"] { opacity: 1; transform: none; }
+        .fundo { z-index: 1; }
+        .frente { z-index: 7; }
+        .tampa { z-index: 8; }
+        .tampa[data-on="true"] { transform: translate(10%, -13%) rotate(-7deg); }
+        .tampa[data-on="true"][data-fechada="true"] { transform: none; }
+
+        /* tudo que está na caixa parte junto com ela */
+        .caixa-peca[data-enviada="true"],
+        .env-peca[data-enviada="true"],
+        .papel-palco[data-enviada="true"],
+        .produto[data-enviada="true"] {
+          transform: translateY(-150%) rotate(-7deg) scale(0.62);
+          opacity: 0;
+          transition: transform 1500ms cubic-bezier(0.5, 0, 0.2, 1),
+            opacity 500ms ease 1000ms;
         }
 
-        /* ── bebê ──────────────────────────────────────────── */
-        .bebe-palco {
-          display: grid;
-          place-items: end start;
-          padding-left: 6%;
-          padding-bottom: 6%;
-          z-index: 5;
+        /* ── Heitor ────────────────────────────────────────── */
+        .bebe {
+          position: absolute;
+          left: 0;
+          bottom: 2%;
+          width: 26%;
+          min-width: 88px;
+          z-index: 9;
           opacity: 0;
-          transform: translateX(-14%);
-          transition: opacity 500ms ease, transform 800ms cubic-bezier(0.22, 1, 0.36, 1);
+          transform: translateX(-16%);
+          transition: opacity 500ms ease, transform 800ms var(--calmo);
           pointer-events: none;
         }
-        .bebe-palco[data-on="true"] { opacity: 1; transform: none; }
-        .bebe-palco :global(svg) {
-          width: 30%;
-          min-width: 96px;
-          height: auto;
-          transition: transform 700ms cubic-bezier(0.34, 1.4, 0.64, 1);
-        }
-        .bebe-palco[data-guardando="true"] :global(svg) {
-          transform: translate(16%, -10%) rotate(6deg);
-        }
+        .bebe[data-on="true"] { opacity: 1; transform: none; }
+        .bebe[data-guardando="true"] { transform: translate(14%, -8%) rotate(6deg); }
 
         /* ── faíscas ───────────────────────────────────────── */
-        .faiscas { z-index: 6; pointer-events: none; opacity: 0; }
+        .faiscas { position: absolute; inset: 0; z-index: 10; pointer-events: none; opacity: 0; }
         .faiscas[data-on="true"] { opacity: 1; }
         .faiscas :global(.f) { position: absolute; width: 14px; color: #d8b877; opacity: 0; }
         .faiscas[data-on="true"] :global(.f) { animation: brilha 1.5s ease-out forwards; }
-        .faiscas :global(.f0) { left: 30%; top: 48%; animation-delay: 0.1s; }
-        .faiscas :global(.f1) { left: 62%; top: 40%; animation-delay: 0.28s; width: 10px; }
-        .faiscas :global(.f2) { left: 44%; top: 62%; animation-delay: 0.42s; width: 18px; }
-        .faiscas :global(.f3) { left: 70%; top: 60%; animation-delay: 0.16s; width: 9px; }
-        .faiscas :global(.f4) { left: 24%; top: 64%; animation-delay: 0.52s; width: 12px; }
+        .faiscas :global(.f0) { left: 30%; top: 46%; animation-delay: 0.1s; }
+        .faiscas :global(.f1) { left: 62%; top: 36%; animation-delay: 0.28s; width: 10px; }
+        .faiscas :global(.f2) { left: 44%; top: 58%; animation-delay: 0.42s; width: 18px; }
+        .faiscas :global(.f3) { left: 70%; top: 56%; animation-delay: 0.16s; width: 9px; }
+        .faiscas :global(.f4) { left: 24%; top: 62%; animation-delay: 0.52s; width: 12px; }
         @keyframes brilha {
           0% { opacity: 0; transform: scale(0.2); }
           35% { opacity: 0.9; transform: scale(1); }
@@ -428,23 +436,26 @@ export function Cerimonia({
 
         /* ── agradecimento ─────────────────────────────────── */
         .obrigado {
+          position: absolute;
+          inset: 0;
           display: flex;
           flex-direction: column;
           justify-content: center;
           text-align: center;
           padding-inline: 8%;
-          z-index: 7;
+          z-index: 11;
           opacity: 0;
           transform: translateY(14px);
-          transition: opacity 800ms ease 200ms, transform 900ms cubic-bezier(0.22, 1, 0.36, 1) 200ms;
+          transition: opacity 800ms ease 200ms, transform 900ms var(--calmo) 200ms;
           pointer-events: none;
         }
         .obrigado[data-on="true"] { opacity: 1; transform: none; }
         .l1 {
-          font-family: var(--font-mao);
-          font-size: clamp(1.7rem, 7vw, 2.5rem);
+          font-family: var(--font-heitor);
+          font-size: clamp(2.4rem, 10vw, 3.6rem);
+          line-height: 1;
           color: #032a42;
-          margin-bottom: 0.5em;
+          margin-bottom: 0.3em;
         }
         .l2 {
           font-size: clamp(0.9rem, 3.6vw, 1.02rem);
@@ -463,4 +474,13 @@ export function Cerimonia({
       `}</style>
     </div>
   );
+}
+
+/** Só posição — a opacidade fica no CSS, senão o inline venceria o voo final. */
+function posicao(p: { left: number; width: number; top: number }) {
+  return {
+    left: `${p.left}%`,
+    width: `${p.width}%`,
+    top: `${p.top}%`,
+  } satisfies React.CSSProperties;
 }

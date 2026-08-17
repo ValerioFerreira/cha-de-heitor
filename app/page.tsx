@@ -1,26 +1,32 @@
-import Link from "next/link";
+import { ArtDefs } from "@/components/art/filters";
+import { ArcoMask } from "@/components/art/motifs";
+import { Atmosfera } from "@/components/shared/atmosfera";
+import { Musica } from "@/components/shared/musica";
+import { Hero, Historia } from "@/components/sections/abertura";
+import { Presentes, ComoFunciona } from "@/components/sections/presentes";
+import { Evento, Rsvp } from "@/components/sections/evento";
+import { Galeria, Final, Rodape } from "@/components/sections/fecho";
 
 export default function Home() {
   return (
-    <main
-      style={{
-        minHeight: "100svh",
-        display: "grid",
-        placeItems: "center",
-        padding: "2rem",
-        textAlign: "center",
-      }}
-    >
-      <div>
-        <p style={{ fontFamily: "var(--font-editorial)", fontStyle: "italic", color: "var(--color-casca)" }}>
-          esperando Heitor
-        </p>
-        <p style={{ marginTop: "1rem" }}>
-          <Link href="/lab" style={{ color: "var(--color-navy)", textDecoration: "underline" }}>
-            ver o ateliê →
-          </Link>
-        </p>
-      </div>
-    </main>
+    <>
+      <ArtDefs />
+      <ArcoMask id="arco" />
+      <Atmosfera />
+
+      <main>
+        <Hero />
+        <Historia />
+        <Presentes />
+        <ComoFunciona />
+        <Evento />
+        <Rsvp />
+        <Galeria />
+        <Final />
+      </main>
+
+      <Rodape />
+      <Musica />
+    </>
   );
 }

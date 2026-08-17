@@ -165,9 +165,8 @@ function SecaoAssinatura() {
       <span className="lab-rotulo">01 · a assinatura</span>
       <h2 className="lab-titulo">Heitor, escrito à mão</h2>
       <p className="lab-nota">
-        Treze traços na ordem em que uma pessoa escreveria — inclusive o pingo do i,
-        que vem por último. O traço final é a rubrica, e é ela que volta no site
-        inteiro como filete entre as seções. Não é fonte: é desenho.
+        Na Autography. O nome não aparece: ele é escrito — a máscara abre da esquerda
+        para a direita no ritmo de uma mão, com uma pequena hesitação no meio.
       </p>
 
       <div
@@ -177,10 +176,9 @@ function SecaoAssinatura() {
           border: "1px solid rgba(179,146,111,.28)",
         }}
       >
-        <Assinatura
-          key={k}
-          className="w-full max-w-[520px] mx-auto text-[var(--color-navy)]"
-        />
+        <p style={{ textAlign: "center", color: "var(--color-navy)", fontSize: "clamp(4rem,16vw,8rem)" }}>
+          <Assinatura key={k} />
+        </p>
       </div>
 
       <div style={{ display: "flex", gap: "0.75rem", marginTop: "1.25rem", flexWrap: "wrap" }}>
