@@ -1,0 +1,102 @@
+@import "tailwindcss";
+
+@theme {
+  /* ── Cor ────────────────────────────────────────────────
+     O site atravessa o dia: a luz clara da manhã na hero,
+     a areia quente da história e dos presentes, e o azul-noite
+     no fim. Os tons intermediários existem para dar hierarquia. */
+  --color-noite: #04212f;
+  --color-navy: #032a42;
+  --color-profundo: #0b3c56;
+  --color-azul: #7ba5c6;
+  --color-ceu: #d1e2f3;
+  --color-bruma: #e8f0f8;
+
+  --color-linho: #fbf7f0;
+  --color-papel: #f5efe4;
+  --color-areia: #f0d8b6;
+  --color-taupe: #b3926f;
+  --color-casca: #8a6a4d;
+
+  --color-tinta: #2b2119;
+  --color-grafite: #5c5347;
+
+  /* ── Tipografia ──────────────────────────────────────── */
+  --font-editorial: var(--font-newsreader), Georgia, serif;
+  --font-ui: var(--font-instrument), system-ui, sans-serif;
+  --font-mao: var(--font-mao), cursive;
+
+  /* ── Ritmo ───────────────────────────────────────────── */
+  --radius-suave: 2px;
+  --radius-arco: 50% 50% 4px 4px / 32% 32% 4px 4px;
+
+  --ease-calmo: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-tinta: cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background: var(--color-linho);
+    color: var(--color-tinta);
+    font-family: var(--font-editorial);
+    font-synthesis-weight: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: clip;
+  }
+
+  ::selection {
+    background: var(--color-areia);
+    color: var(--color-navy);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-taupe);
+    outline-offset: 3px;
+  }
+}
+
+@layer utilities {
+  /* Rótulo de seção: serifa itálica minúscula — não o
+     maiúsculo espaçado que todo site usa. */
+  .rotulo {
+    font-family: var(--font-editorial);
+    font-style: italic;
+    font-size: 0.9375rem;
+    letter-spacing: 0.01em;
+    color: var(--color-casca);
+  }
+
+  .numeros {
+    font-family: var(--font-ui);
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum";
+  }
+
+  /* Papel: grão sutil por cima de qualquer superfície clara */
+  .grao::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.28;
+    mix-blend-mode: multiply;
+    background-image: var(--grao-url);
+    background-size: 180px 180px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
