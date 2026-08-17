@@ -90,9 +90,9 @@ export function Assinatura({
         .traco {
           stroke-dasharray: 1 1.001;
           stroke-dashoffset: 1;
-          animation: escrever var(--dur) cubic-bezier(0.55, 0, 0.45, 1) var(--delay) forwards;
+          animation: escrever-traco var(--dur) cubic-bezier(0.55, 0, 0.45, 1) var(--delay) forwards;
         }
-        @keyframes escrever {
+        @keyframes escrever-traco {
           to { stroke-dashoffset: 0; }
         }
         @media (prefers-reduced-motion: reduce) {

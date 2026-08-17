@@ -20,6 +20,7 @@ const ETAPAS = [
   "papel",
   "texto",
   "assinatura",
+  "ler", // a carta fica parada, inteira, para ser lida
   "dobra",
   "envelope",
   "lacre",
@@ -34,9 +35,10 @@ const ETAPAS = [
 type Etapa = (typeof ETAPAS)[number];
 
 const DURACAO: Record<Etapa, number> = {
-  papel: 800,
-  texto: 1700,
-  assinatura: 1900,
+  papel: 900,
+  texto: 2400,
+  assinatura: 2000,
+  ler: 1600,
   dobra: 1200,
   envelope: 1100,
   lacre: 900,
@@ -209,7 +211,7 @@ export function Cerimonia({
         }
         .papel {
           position: relative;
-          width: 60%;
+          width: 68%;
           aspect-ratio: 3 / 4.2;
           transform-style: preserve-3d;
           transition: transform 900ms cubic-bezier(0.22, 1, 0.36, 1), opacity 500ms ease;
@@ -254,28 +256,30 @@ export function Cerimonia({
           flex-direction: column;
           justify-content: space-between;
         }
+        /* a mensagem sai na letra manuscrita… */
         .corpo {
-          font-family: var(--font-mao);
-          font-size: clamp(0.7rem, 2.5vw, 0.92rem);
-          line-height: 1.95;
-          color: #3a2f26;
+          font-family: var(--font-mao-b);
+          font-size: clamp(0.95rem, 3.6vw, 1.22rem);
+          line-height: 1.6;
+          color: #35405c;
           clip-path: inset(0 100% 0 0);
         }
         .corpo[data-escrito="true"] {
-          animation: escrever 1.6s cubic-bezier(0.5, 0, 0.4, 1) forwards;
+          animation: escrever-carta 2.2s cubic-bezier(0.5, 0, 0.4, 1) forwards;
         }
+        /* …e o nome, embaixo, na letra de assinatura */
         .assina { align-self: flex-end; padding-right: 3%; }
         .nome {
           font-family: var(--font-mao);
-          font-size: clamp(0.95rem, 3.4vw, 1.28rem);
+          font-size: clamp(1.05rem, 4vw, 1.45rem);
           color: #1f3b52;
           display: inline-block;
           clip-path: inset(0 100% 0 0);
         }
         .nome[data-escrito="true"] {
-          animation: escrever 1.5s cubic-bezier(0.45, 0, 0.35, 1) forwards;
+          animation: escrever-carta 1.8s cubic-bezier(0.45, 0, 0.35, 1) forwards;
         }
-        @keyframes escrever {
+        @keyframes escrever-carta {
           to { clip-path: inset(0 -3% 0 0); }
         }
         .vinco {
