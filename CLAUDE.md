@@ -416,6 +416,16 @@ cerimônia devolve só posição e deixa a opacidade no CSS.
 `recortar-bichos.mjs`, ler o alfa suavizado de 1 em 1 byte produzia a imagem
 listrada. Use `info.channels` como passo, nunca assuma 1.
 
+**Variável de ambiente criada e deixada em branco chega como `""`, não como
+`undefined`.** O `??` não cai no valor padrão, e um `new URL("")` no
+`metadataBase` derrubou o build inteiro na Vercel — no `/_not-found`, de todos
+os lugares. Trate ausência por conteúdo (`if (!valor?.trim())`), nunca por
+nulidade.
+
+**Padrão de `.vercelignore` sem barra inicial casa em qualquer nível.** É a
+sintaxe do `.gitignore`: `images/` leva junto `public/images/`. Ancore sempre
+com `/images/`. Isso já apagou o `public/` inteiro de um deploy.
+
 **O Next guarda as imagens otimizadas em `.next/cache/images`.** Se você
 regerar um arquivo mantendo o mesmo nome, o navegador continua recebendo a
 versão velha e você vai debugar CSS à toa. `rm -rf .next/cache/images` depois

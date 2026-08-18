@@ -50,8 +50,37 @@ const cormorant = Cormorant_Garamond({
   display: "swap",
 });
 
+/**
+ * O endereço público do site, usado pelo `metadataBase` para montar a
+ * prévia do WhatsApp.
+ *
+ * Cuidado com o `??` aqui: uma variável de ambiente criada e deixada em
+ * branco chega como string vazia, não como `undefined` — e `new URL("")`
+ * derruba o build inteiro. Por isso a checagem é por conteúdo, e a Vercel
+ * entra como plano B com o domínio que ela mesma publica.
+ */
+function enderecoDoSite(): URL {
+  const candidatos = [
+    process.env.NEXT_PUBLIC_SITE_URL,
+    process.env.VERCEL_PROJECT_PRODUCTION_URL,
+    process.env.VERCEL_URL,
+  ];
+
+  for (const bruto of candidatos) {
+    const limpo = bruto?.trim();
+    if (!limpo) continue;
+    try {
+      return new URL(/^https?:\/\//.test(limpo) ? limpo : `https://${limpo}`);
+    } catch {
+      // valor torto: tenta o próximo em vez de quebrar o build
+    }
+  }
+
+  return new URL("http://localhost:3000");
+}
+
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://cha-de-heitor.vercel.app"),
+  metadataBase: enderecoDoSite(),
   title: {
     default: "Esperando Heitor",
     template: "%s · Esperando Heitor",

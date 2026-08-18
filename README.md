@@ -55,7 +55,7 @@ presente e a mensagem se perdem. Configure as duas antes de divulgar o link.
 | `RESEND_API_KEY` | [resend.com](https://resend.com) — o plano grátis basta |
 | `EMAIL_DESTINO` | e-mail que recebe os avisos |
 | `EMAIL_REMETENTE` | `Heitor <onboarding@resend.dev>` enquanto não houver domínio próprio |
-| `NEXT_PUBLIC_SITE_URL` | a URL final do site, usada na prévia do WhatsApp |
+| `NEXT_PUBLIC_SITE_URL` | a URL final do site, usada na prévia do WhatsApp. Deixe **de fora** enquanto não souber o endereço — criar a variável vazia é pior que não criar; sem ela, a Vercel usa o domínio que ela mesma publica |
 
 As tabelas do banco são criadas sozinhas na primeira gravação. Não há migração
 para rodar.
