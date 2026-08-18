@@ -8,7 +8,6 @@ export const CONTEUDO = {
     titulo: "Nós já escutamos teus sinais…",
     mensagem:
       "Cada detalhe está sendo preparado com carinho para a chegada do nosso pequeno Heitor. E você faz parte dessa história.",
-    convite: "role para conhecer",
   },
 
   historia: {
@@ -19,9 +18,7 @@ export const CONTEUDO = {
   },
 
   presentes: {
-    rotulo: "a lista",
     titulo: "Escolha um presente para o Heitor",
-    nota: "Escolha um item, faça o PIX e deixe uma mensagem. Leva um minuto.",
   },
 
   comoFunciona: [
@@ -42,13 +39,8 @@ export const CONTEUDO = {
   },
 
   rsvp: {
-    rotulo: "presença",
     titulo: "Confirme sua presença",
     nota: "É só para acertarmos as mesas com o restaurante.",
-  },
-
-  galeria: {
-    rotulo: "antes dele chegar",
   },
 
   final: {

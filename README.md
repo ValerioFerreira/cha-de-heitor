@@ -87,6 +87,19 @@ aparece com o nome e a data.
 Preços ficam em **centavos** (`3000` = R$ 30,00). Imagens novas precisam ser
 copiadas para `public/images/` — é de lá que o site lê.
 
+### Trocar a foto de um produto ou um bicho
+
+As fotos de produto vêm com fundo branco e as ilustrações dos bichos vêm com
+fundo pintado. O site usa versões já recortadas, geradas por script:
+
+```bash
+npm run recortar
+```
+
+Coloque o arquivo novo em `images/` com o mesmo nome do antigo, rode o comando
+acima e apague o cache de imagem do Next (`rm -rf .next/cache/images`) — sem
+isso o navegador continua servindo a versão velha.
+
 ---
 
 ## Comandos

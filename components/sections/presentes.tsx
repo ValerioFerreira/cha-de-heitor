@@ -7,6 +7,7 @@ import { GIFTS, emReais, type Gift } from "@/data/gifts";
 import { CONTEUDO } from "@/data/content";
 import { Baby, type BabyPose } from "@/components/art/baby";
 import { PAPER_GRAIN_URL } from "@/components/art/filters";
+import { Bicho } from "@/components/shared/bicho";
 import { Reveal } from "@/components/shared/reveal";
 
 /* ── 03 · o catálogo ───────────────────────────────────────── */
@@ -15,22 +16,33 @@ import { Reveal } from "@/components/shared/reveal";
 const POSES: BabyPose[] = ["sentado", "espiando", "acenando", "placa"];
 
 export function Presentes() {
-  const { presentes } = CONTEUDO;
+  const { presentes, comoFunciona } = CONTEUDO;
 
   return (
     <section id="presentes" className="presentes">
+      <Bicho nome="urso" className="urso" />
+
       <div className="cabeca">
-        <Reveal as="p" className="rotulo">{presentes.rotulo}</Reveal>
-        <Reveal atraso={100}>
+        <Reveal>
           <h2 className="titulo">{presentes.titulo}</h2>
-          <p className="nota">{presentes.nota}</p>
         </Reveal>
       </div>
+
+      {/* o passo a passo vem logo antes da lista, para a pessoa já saber o
+          que vai acontecer quando clicar num item */}
+      <ol className="passos">
+        {comoFunciona.map((passo, i) => (
+          <Reveal as="li" key={passo} atraso={i * 110} forca="sutil">
+            <span className="n">{i + 1}</span>
+            <span className="t">{passo}</span>
+          </Reveal>
+        ))}
+      </ol>
 
       <ul className="grade">
         {GIFTS.map((g, i) => (
           <li key={g.slug}>
-            <Reveal atraso={(i % 3) * 90} forca="sutil">
+            <Reveal atraso={(i % 2) * 90} forca="sutil">
               <Card gift={g} pose={POSES[i % POSES.length]} />
             </Reveal>
           </li>
@@ -39,21 +51,20 @@ export function Presentes() {
 
       <style jsx>{`
         .presentes {
-          padding: clamp(3rem, 10vh, 6rem) clamp(1.25rem, 5vw, 4rem)
-            clamp(4rem, 12vh, 7rem);
-          max-width: 1180px;
+          position: relative;
+          padding: clamp(3rem, 10vh, 6rem) clamp(1rem, 5vw, 4rem) clamp(4rem, 12vh, 7rem);
+          max-width: 1000px;
           margin-inline: auto;
         }
-        .cabeca {
-          max-width: 34ch;
-          margin-bottom: clamp(2rem, 6vw, 3.5rem);
+        .presentes :global(.urso) {
+          position: absolute;
+          top: clamp(0.5rem, 3vw, 2rem);
+          right: clamp(-0.5rem, 1vw, 1rem);
+          width: clamp(78px, 18vw, 120px);
         }
-        .presentes :global(.rotulo) {
-          font-family: var(--font-editorial);
-          font-style: italic;
-          font-size: 0.92rem;
-          color: var(--color-casca);
-          margin-bottom: 0.75rem;
+        .cabeca {
+          max-width: 22ch;
+          margin-bottom: clamp(1.5rem, 5vw, 2.25rem);
         }
         .titulo {
           font-family: var(--font-editorial);
@@ -62,25 +73,44 @@ export function Presentes() {
           line-height: 1.14;
           color: var(--color-navy);
         }
-        .nota {
-          margin-top: 0.85rem;
-          font-size: 0.98rem;
-          line-height: 1.65;
-          color: var(--color-grafite);
+
+        .passos {
+          display: grid;
+          gap: 0.85rem;
+          list-style: none;
+          border-top: 1px solid rgba(179, 146, 111, 0.35);
+          border-bottom: 1px solid rgba(179, 146, 111, 0.35);
+          padding: clamp(1.25rem, 4vw, 1.75rem) 0;
+          margin-bottom: clamp(1.75rem, 5vw, 2.5rem);
         }
+        @media (min-width: 720px) {
+          .passos { grid-template-columns: repeat(3, 1fr); gap: 2rem; }
+        }
+        .presentes :global(.passos li) {
+          display: flex;
+          gap: 0.75rem;
+          align-items: baseline;
+        }
+        .n {
+          font-family: var(--font-editorial);
+          font-style: italic;
+          font-size: 1.05rem;
+          color: var(--color-taupe);
+        }
+        .t {
+          font-size: 0.95rem;
+          line-height: 1.55;
+          color: var(--color-tinta);
+          max-width: 28ch;
+        }
+
+        /* dois por linha em qualquer tela — e baixos o bastante para caberem
+           quatro na altura de um celular */
         .grade {
           display: grid;
-          gap: clamp(1rem, 3vw, 1.75rem);
-          grid-template-columns: 1fr;
+          grid-template-columns: repeat(2, 1fr);
+          gap: clamp(0.75rem, 2.5vw, 1.5rem);
           list-style: none;
-        }
-        @media (min-width: 560px) {
-          .grade { grid-template-columns: repeat(2, 1fr); }
-        }
-        @media (min-width: 900px) {
-          .grade { grid-template-columns: repeat(3, 1fr); }
-          /* o ritmo do catálogo: a coluna do meio desce um pouco */
-          .grade > :global(li:nth-child(3n + 2)) { transform: translateY(clamp(1rem, 3vw, 2.5rem)); }
         }
       `}</style>
     </section>
@@ -95,7 +125,7 @@ function Card({ gift, pose }: { gift: Gift; pose: BabyPose }) {
     const el = ref.current;
     if (!el) return;
     const obs = new IntersectionObserver(([e]) => setNaTela(e.isIntersecting), {
-      threshold: 0.5,
+      threshold: 0.45,
     });
     obs.observe(el);
     return () => obs.disconnect();
@@ -106,16 +136,14 @@ function Card({ gift, pose }: { gift: Gift; pose: BabyPose }) {
       <Link href={`/presente/${gift.slug}`} className="alvo">
         <div className="moldura">
           <span className="grao" style={{ backgroundImage: PAPER_GRAIN_URL }} />
-          <span className="lamina">
-            <Image
-              src={gift.imagem}
-              alt={`${gift.nome}, ${gift.detalhe}`}
-              width={420}
-              height={420}
-              sizes="(max-width: 560px) 88vw, (max-width: 900px) 44vw, 30vw"
-              className="produto"
-            />
-          </span>
+          <Image
+            src={gift.imagem}
+            alt={`${gift.nome}, ${gift.detalhe}`}
+            width={420}
+            height={420}
+            sizes="(max-width: 720px) 46vw, 300px"
+            className="produto"
+          />
           <span className="heitor">
             <Baby pose={pose} roupa="#d1e2f3" />
           </span>
@@ -128,7 +156,7 @@ function Card({ gift, pose }: { gift: Gift; pose: BabyPose }) {
             {emReais(gift.precoCentavos)}
             {gift.quantidadeAberta && <em> cada</em>}
           </p>
-          <span className="cta">Escolher presente</span>
+          <span className="cta">Escolher</span>
         </div>
       </Link>
 
@@ -140,13 +168,16 @@ function Card({ gift, pose }: { gift: Gift; pose: BabyPose }) {
           height: 100%;
           transition: border-color 400ms ease, background 400ms ease;
         }
-        .card:hover { border-color: rgba(179, 146, 111, 0.65); background: rgba(251, 247, 240, 0.92); }
+        .card:hover {
+          border-color: rgba(179, 146, 111, 0.65);
+          background: rgba(251, 247, 240, 0.92);
+        }
         .alvo { display: block; text-decoration: none; color: inherit; height: 100%; }
         .alvo:focus-visible { outline: 2px solid var(--color-taupe); outline-offset: -4px; }
 
         .moldura {
           position: relative;
-          aspect-ratio: 4 / 5;
+          aspect-ratio: 1;
           background: linear-gradient(168deg, #f8eeda, #efd6b2);
           display: grid;
           place-items: center;
@@ -156,90 +187,73 @@ function Card({ gift, pose }: { gift: Gift; pose: BabyPose }) {
         .grao {
           position: absolute;
           inset: 0;
-          opacity: 0.28;
+          opacity: 0.26;
           mix-blend-mode: multiply;
           background-size: 180px;
         }
-        /* a lâmina de papel: as fotos vêm com fundos quase-brancos diferentes
-           entre si, então em vez de tentar recortá-las, elas ficam apoiadas
-           sobre papel — o retângulo passa a ser intencional */
-        .lamina {
+        /* as imagens em /images/produtos já vêm sem fundo, recortadas por
+           scripts/recortar-produtos.mjs — nada de blend aqui */
+        .card :global(.produto) {
           position: relative;
           z-index: 1;
-          display: grid;
-          place-items: center;
-          width: 74%;
-          aspect-ratio: 1;
-          background: #fdfaf4;
-          border: 1px solid rgba(179, 146, 111, 0.3);
-          box-shadow: 0 24px 34px -22px rgba(90, 66, 44, 0.55);
-          transform: translateY(-4%);
-          transition: transform 900ms cubic-bezier(0.22, 1, 0.36, 1),
-            box-shadow 900ms ease;
-        }
-        .card:hover .lamina {
-          transform: translateY(-7%);
-          box-shadow: 0 30px 40px -22px rgba(90, 66, 44, 0.6);
-        }
-        .card :global(.produto) {
-          width: 84%;
+          width: 82%;
           height: auto;
-          max-height: 84%;
+          max-height: 78%;
           object-fit: contain;
+          filter: drop-shadow(0 16px 20px rgba(90, 66, 44, 0.28));
+          transform: translateY(-4%);
+          transition: transform 900ms cubic-bezier(0.22, 1, 0.36, 1);
         }
+        .card:hover :global(.produto) { transform: translateY(-7%) scale(1.03); }
 
         .heitor {
           position: absolute;
           z-index: 2;
-          right: 4%;
-          bottom: -2%;
-          width: 34%;
+          right: 2%;
+          bottom: -3%;
+          width: 32%;
           opacity: 0;
-          transform: translateY(48%);
-          transition: transform 850ms cubic-bezier(0.34, 1.35, 0.64, 1),
-            opacity 450ms ease;
+          transform: translateY(52%);
+          transition: transform 850ms cubic-bezier(0.34, 1.35, 0.64, 1), opacity 450ms ease;
         }
         .card[data-na-tela="true"] .heitor,
-        .card:hover .heitor {
-          opacity: 1;
-          transform: translateY(0);
-        }
+        .card:hover .heitor { opacity: 1; transform: translateY(0); }
 
-        .ficha { padding: 1.1rem 1.15rem 1.35rem; }
+        .ficha { padding: 0.8rem 0.85rem 0.95rem; }
         h3 {
           font-family: var(--font-editorial);
           font-weight: 400;
-          font-size: 1.15rem;
+          font-size: clamp(0.95rem, 3.6vw, 1.05rem);
           line-height: 1.2;
           color: var(--color-navy);
         }
         .detalhe {
           font-family: var(--font-editorial);
           font-style: italic;
-          font-size: 0.9rem;
+          font-size: clamp(0.78rem, 3vw, 0.85rem);
           color: var(--color-casca);
-          margin-top: 0.15rem;
+          margin-top: 0.1rem;
         }
         .preco {
           font-family: var(--font-ui);
           font-variant-numeric: tabular-nums;
-          font-size: 1.02rem;
+          font-size: clamp(0.9rem, 3.4vw, 0.98rem);
           color: var(--color-tinta);
-          margin: 0.7rem 0 1.1rem;
+          margin: 0.45rem 0 0.7rem;
         }
         .preco em {
           font-family: var(--font-editorial);
-          font-size: 0.85rem;
+          font-size: 0.78rem;
           color: var(--color-casca);
         }
         .cta {
           display: block;
           text-align: center;
           font-family: var(--font-ui);
-          font-size: 0.76rem;
-          letter-spacing: 0.08em;
+          font-size: 0.68rem;
+          letter-spacing: 0.09em;
           text-transform: uppercase;
-          padding: 0.85rem;
+          padding: 0.62rem;
           border: 1px solid var(--color-navy);
           color: var(--color-navy);
           transition: background 320ms ease, color 320ms ease;
@@ -251,50 +265,5 @@ function Card({ gift, pose }: { gift: Gift; pose: BabyPose }) {
         }
       `}</style>
     </article>
-  );
-}
-
-/* ── 04 · como funciona ────────────────────────────────────── */
-
-export function ComoFunciona() {
-  return (
-    <section className="como">
-      <ol>
-        {CONTEUDO.comoFunciona.map((passo, i) => (
-          <Reveal as="li" key={passo} atraso={i * 120} forca="sutil">
-            <span className="n">{i + 1}</span>
-            <span className="t">{passo}</span>
-          </Reveal>
-        ))}
-      </ol>
-      <style jsx>{`
-        .como {
-          padding: 0 clamp(1.25rem, 5vw, 4rem) clamp(4rem, 12vh, 7rem);
-          max-width: 1180px;
-          margin-inline: auto;
-        }
-        ol {
-          display: grid;
-          gap: clamp(1.25rem, 4vw, 2.5rem);
-          list-style: none;
-          border-top: 1px solid rgba(179, 146, 111, 0.35);
-          padding-top: clamp(1.75rem, 5vw, 2.75rem);
-        }
-        @media (min-width: 720px) { ol { grid-template-columns: repeat(3, 1fr); } }
-        .como :global(li) { display: flex; gap: 0.9rem; align-items: baseline; }
-        .n {
-          font-family: var(--font-editorial);
-          font-style: italic;
-          font-size: 1.1rem;
-          color: var(--color-taupe);
-        }
-        .t {
-          font-size: 1rem;
-          line-height: 1.6;
-          color: var(--color-tinta);
-          max-width: 26ch;
-        }
-      `}</style>
-    </section>
   );
 }

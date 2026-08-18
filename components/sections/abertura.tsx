@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { CONTEUDO } from "@/data/content";
 import { Assinatura, Rubrica } from "@/components/art/signature";
-import { Girafa, Passarinho } from "@/components/art/animals";
+import { Bicho } from "@/components/shared/bicho";
 import { Reveal } from "@/components/shared/reveal";
 
 /* ── 01 · a primeira tela ──────────────────────────────────── */
@@ -14,36 +14,32 @@ export function Hero() {
   return (
     <header className="hero">
       <div className="dentro">
-        <p className="eyebrow">
-          chá de fraldas · {evento.data.toLowerCase()}
-        </p>
+        <p className="eyebrow">chá de fraldas · {evento.data.toLowerCase()}</p>
 
         <h1 className="nome">
           <Assinatura duracao={2.6} delay={0.35} />
           <span className="sr">Heitor</span>
         </h1>
 
-        <div className="retrato">
-          <Image
-            src="/images/casal-1.jpg"
-            alt="Valério e Nathalie sentados no chão, as mãos sobre a barriga"
-            fill
-            priority
-            sizes="(max-width: 780px) 78vw, 40vw"
-            style={{ objectFit: "cover", objectPosition: "50% 42%" }}
-          />
-          <Girafa variant="espiando" className="girafa" />
+        <div className="figura">
+          <div className="retrato">
+            <Image
+              src="/images/casal-1.jpg"
+              alt="Valério e Nathalie sentados no chão, as mãos sobre a barriga"
+              fill
+              priority
+              sizes="(max-width: 780px) 78vw, 40vw"
+              style={{ objectFit: "cover", objectPosition: "50% 42%" }}
+            />
+          </div>
+          {/* a girafa fica encostada na foto, nunca por cima do texto */}
+          <Bicho nome="girafa" className="girafa" balanca />
         </div>
 
         <div className="dizeres">
           <h2 className="titulo">{hero.titulo}</h2>
           <p className="mensagem">{hero.mensagem}</p>
         </div>
-
-        <a href="#historia" className="descer">
-          <span>{hero.convite}</span>
-          <i />
-        </a>
       </div>
 
       <style jsx>{`
@@ -54,6 +50,7 @@ export function Hero() {
           padding: clamp(4.5rem, 12vh, 7rem) clamp(1.25rem, 6vw, 4rem) 3rem;
         }
         .dentro {
+          position: relative;
           width: 100%;
           max-width: 1180px;
           margin-inline: auto;
@@ -80,27 +77,29 @@ export function Hero() {
           overflow: hidden;
           clip-path: inset(50%);
         }
-        .retrato {
+        .figura {
           position: relative;
           width: min(78%, 340px);
-          aspect-ratio: 3 / 4;
           margin-left: auto;
           margin-right: calc(clamp(1.25rem, 6vw, 4rem) * -1);
+        }
+        .retrato {
+          position: relative;
+          width: 100%;
+          aspect-ratio: 3 / 4;
           clip-path: url(#arco);
           background: var(--color-bruma);
           animation: subir 1.6s cubic-bezier(0.22, 1, 0.36, 1) 0.9s both;
         }
-        .retrato :global(.girafa) {
+        .hero :global(.girafa) {
           position: absolute;
-          left: -14%;
-          bottom: -2%;
-          width: 42%;
-          height: auto;
-          animation: espiar 1.2s cubic-bezier(0.34, 1.4, 0.64, 1) 2.4s both;
+          left: clamp(-72px, -22%, -40px);
+          bottom: -4%;
+          width: clamp(88px, 24vw, 132px);
+          z-index: 2;
+          animation: espiar 1.4s cubic-bezier(0.34, 1.35, 0.64, 1) 2.2s both;
         }
-        .dizeres {
-          max-width: 34ch;
-        }
+        .dizeres { max-width: 34ch; }
         .titulo {
           font-family: var(--font-editorial);
           font-size: clamp(1.5rem, 6.2vw, 2.4rem);
@@ -116,37 +115,14 @@ export function Hero() {
           color: var(--color-grafite);
           animation: subir 1.2s cubic-bezier(0.22, 1, 0.36, 1) 1.8s both;
         }
-        .descer {
-          display: inline-flex;
-          align-items: center;
-          gap: 0.7rem;
-          font-family: var(--font-editorial);
-          font-style: italic;
-          font-size: 0.9rem;
-          color: var(--color-casca);
-          text-decoration: none;
-          animation: subir 1s ease 2.4s both;
-        }
-        .descer i {
-          display: block;
-          width: 1px;
-          height: 34px;
-          background: linear-gradient(var(--color-taupe), transparent);
-          animation: respirar 2.8s ease-in-out infinite;
-          transform-origin: top;
-        }
 
         @keyframes subir {
           from { opacity: 0; transform: translateY(22px); }
           to { opacity: 1; transform: none; }
         }
         @keyframes espiar {
-          from { opacity: 0; transform: translateY(46%); }
+          from { opacity: 0; transform: translateY(40%); }
           to { opacity: 1; transform: none; }
-        }
-        @keyframes respirar {
-          0%, 100% { transform: scaleY(0.55); opacity: 0.5; }
-          50% { transform: scaleY(1); opacity: 1; }
         }
 
         /* ── telas maiores: o nome atravessa o retrato ───────── */
@@ -156,16 +132,14 @@ export function Hero() {
             grid-template-areas:
               "eyebrow retrato"
               "nome    retrato"
-              "dizeres retrato"
-              "descer  retrato";
+              "dizeres retrato";
             align-items: center;
             column-gap: clamp(2rem, 5vw, 5rem);
           }
           .eyebrow { grid-area: eyebrow; align-self: end; }
           .nome { grid-area: nome; position: relative; z-index: 2; }
           .dizeres { grid-area: dizeres; }
-          .descer { grid-area: descer; }
-          .retrato {
+          .figura {
             grid-area: retrato;
             width: 100%;
             max-width: none;
@@ -175,12 +149,11 @@ export function Hero() {
         }
 
         @media (prefers-reduced-motion: reduce) {
-          .retrato, .titulo, .mensagem, .descer, .retrato :global(.girafa) {
+          .retrato, .titulo, .mensagem, .hero :global(.girafa) {
             animation: none;
             opacity: 1;
             transform: none;
           }
-          .descer i { animation: none; }
         }
       `}</style>
     </header>
@@ -194,6 +167,8 @@ export function Historia() {
 
   return (
     <section id="historia" className="historia">
+      <Bicho nome="passaro" className="passaro" espelhado />
+
       <Reveal as="p" className="rotulo">{historia.rotulo}</Reveal>
 
       <Reveal forca="destaque" atraso={120}>
@@ -203,15 +178,26 @@ export function Historia() {
       <Reveal atraso={280} className="fim">
         <Rubrica className="filete" />
         <p className="pais">{historia.assinatura}</p>
-        <Passarinho className="passaro" />
       </Reveal>
 
       <style jsx>{`
         .historia {
+          position: relative;
           padding: clamp(5rem, 16vh, 9rem) clamp(1.5rem, 8vw, 4rem);
           max-width: 820px;
           margin-inline: auto;
           text-align: center;
+        }
+        .historia :global(.passaro) {
+          position: absolute;
+          top: clamp(1rem, 4vw, 2rem);
+          right: clamp(-0.5rem, 2vw, 2rem);
+          width: clamp(72px, 17vw, 112px);
+          animation: voar 8s ease-in-out infinite;
+        }
+        @keyframes voar {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-12px); }
         }
         .historia :global(.rotulo) {
           font-family: var(--font-editorial);
@@ -234,20 +220,14 @@ export function Historia() {
           align-items: center;
           gap: 0.5rem;
         }
-        .historia :global(.filete) {
-          width: 160px;
-          color: var(--color-taupe);
-        }
+        .historia :global(.filete) { width: 160px; color: var(--color-taupe); }
         .pais {
           font-family: var(--font-mao);
           font-size: clamp(1.1rem, 4.4vw, 1.35rem);
           color: var(--color-casca);
         }
-        .historia :global(.passaro) {
-          width: 54px;
-          height: auto;
-          margin-top: 0.75rem;
-          opacity: 0.85;
+        @media (prefers-reduced-motion: reduce) {
+          .historia :global(.passaro) { animation: none; }
         }
       `}</style>
     </section>

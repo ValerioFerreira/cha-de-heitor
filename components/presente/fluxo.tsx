@@ -116,16 +116,14 @@ export function Fluxo({ gift, codigos }: { gift: Gift; codigos: string[] }) {
         <div className="item">
           <div className="moldura">
             <span className="grao" style={{ backgroundImage: PAPER_GRAIN_URL }} />
-            <span className="lamina">
-              <Image
-                src={gift.imagem}
-                alt={`${gift.nome}, ${gift.detalhe}`}
-                width={520}
-                height={520}
-                priority
-                className="produto"
-              />
-            </span>
+            <Image
+              src={gift.imagem}
+              alt={`${gift.nome}, ${gift.detalhe}`}
+              width={520}
+              height={520}
+              priority
+              className="produto"
+            />
           </div>
           <h1>{gift.nome}</h1>
           <p className="detalhe">{gift.detalhe}</p>
@@ -268,23 +266,16 @@ export function Fluxo({ gift, codigos }: { gift: Gift; codigos: string[] }) {
           clip-path: url(#arco);
         }
         .grao { position: absolute; inset: 0; opacity: 0.28; mix-blend-mode: multiply; background-size: 180px; }
-        .lamina {
+        /* imagens já recortadas em scripts/recortar-produtos.mjs */
+        .item :global(.produto) {
           position: relative;
           z-index: 1;
-          display: grid;
-          place-items: center;
-          width: 72%;
-          aspect-ratio: 1;
-          background: #fdfaf4;
-          border: 1px solid rgba(179, 146, 111, 0.3);
-          box-shadow: 0 26px 38px -24px rgba(90, 66, 44, 0.55);
-          transform: translateY(-3%);
-        }
-        .item :global(.produto) {
-          width: 84%;
+          width: 74%;
           height: auto;
-          max-height: 84%;
+          max-height: 74%;
           object-fit: contain;
+          filter: drop-shadow(0 18px 24px rgba(90, 66, 44, 0.28));
+          transform: translateY(-3%);
         }
         h1 {
           margin-top: clamp(1.25rem, 4vw, 1.75rem);

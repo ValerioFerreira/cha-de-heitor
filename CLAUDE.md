@@ -46,6 +46,7 @@ Estas vieram do responsável. Se uma ideia sua mexe em qualquer uma delas,
 npm install
 npm run dev      # http://localhost:3000
 npm run build    # produção — checa tipos também
+npm run recortar # refaz os recortes das imagens (ver "Recorte de fundo")
 npx tsc --noEmit # só a checagem de tipos
 ```
 
@@ -92,6 +93,10 @@ lib/
 data/
   gifts.ts    o catálogo — fonte única de verdade dos preços
   content.ts  todo o texto do site
+
+scripts/
+  recortar-produtos.mjs  tira o fundo branco das fotos de produto
+  recortar-bichos.mjs    tira o fundo pintado das ilustrações dos bichos
 ```
 
 ### `images/` e `audio/` aparecem duas vezes
@@ -100,6 +105,35 @@ Na raiz estão os **originais** que o responsável entregou. Em `public/` está 
 cópia servida pelo Next. **Ao adicionar uma imagem nova, copie para `public/`** —
 o site só enxerga o que está lá. O `ambiente.mp3` em `public/audio/` é o mesmo
 arquivo do original, renomeado (o nome de origem tem espaços, acentos e emoji).
+
+Duas pastas dentro de `public/images/` são **geradas**, não entregues:
+
+| pasta | vem de | gerada por |
+|---|---|---|
+| `public/images/produtos/` | `images/<produto>.*` | `scripts/recortar-produtos.mjs` |
+| `public/images/bichos/` | `images/{girafa,leao,passaro,urso}.png` | `scripts/recortar-bichos.mjs` |
+
+Não edite nada nessas duas pastas à mão: troque o original e rode
+`npm run recortar`.
+
+### Recorte de fundo
+
+As fotos de produto vieram de e-commerce, sobre branco. As ilustrações dos
+bichos vieram sobre um cinza quente com horizonte e sombra no chão. **Nenhum
+truque de CSS resolve isso** — foram tentados e falharam:
+
+- `mix-blend-mode: multiply` apaga o branco, mas também come os produtos
+  claros: o pacote de lenços sumia inteiro;
+- deixar a moldura clara faz o mesmo estrago, pelo mesmo motivo;
+- máscara radial não serve para os bichos, porque o fundo deles é mais
+  escuro que a página — sobra sempre um retângulo cinza.
+
+A saída é tirar o fundo de verdade, uma vez, com os scripts. Ambos fazem
+preenchimento a partir das bordas: o de produtos só se espalha por pixels
+quase brancos, e o de bichos compara cada pixel com o vizinho de onde veio
+(o fundo é um degradê, então comparar com uma cor fixa não funcionaria). Os
+dois param no contorno de tinta do desenho, e por isso o branco *de dentro*
+da embalagem continua lá.
 
 ---
 
@@ -165,9 +199,15 @@ A Autography é uma fonte comercial; a licença do responsável está em
   janela do quarto. **Precisa estar renderizado na página** para o
   `clip-path: url(#arco)` funcionar.
 - **A rubrica** — o filete manuscrito entre seções.
-- **Três personagens, e só três**: o bebê (Heitor), a girafa e o passarinho. O
-  elefante existe em `animals.tsx` mas está fora do site por decisão editorial —
-  se entrar, um dos outros sai.
+- **Os bichos** — girafa, leão, urso e passarinho, em `components/shared/bicho.tsx`.
+  São ilustrações entregues pelo responsável, não SVG. Aparecem uma vez cada:
+  girafa na hero, passarinho na história e no RSVP, urso no catálogo, leão no
+  evento. A girafa e o passarinho fazem um balanço/voo lentíssimo; os outros
+  ficam parados.
+- O bebê (Heitor) continua sendo SVG autoral, em `components/art/baby.tsx` — é
+  ele que interage com os produtos e guarda o presente na caixa. Os animais em
+  `components/art/animals.tsx` (girafa, passarinho, elefante desenhados à mão)
+  ficaram fora do site depois que as ilustrações chegaram; seguem em `/lab`.
 
 ### Ilustração
 
@@ -192,6 +232,20 @@ que merecem ser notados. **Não anime tudo.** `prefers-reduced-motion` é
 respeitado em todo componente que anima — mantenha assim.
 
 ---
+
+## A galeria
+
+`components/sections/fecho.tsx`. Quatro imagens que se dissolvem umas nas
+outras conforme a página rola, num palco `sticky`.
+
+**Nenhuma imagem pode ser recortada.** Não há máscara em arco nem
+`object-fit: cover` aqui: o ultrassom é largo, os retratos são altos, e
+cortar qualquer um dos dois tira justamente o que importa. Cada imagem entra
+inteira, com `max-width`/`max-height`, e o quadro se ajusta a ela. Isso já foi
+feito errado uma vez — o ultrassom apareceu cortado e o responsável reclamou.
+
+A escala do "zoom" fica entre 0.985 e 1.015 justamente para nunca ultrapassar
+o quadro.
 
 ## A cerimônia do envio
 
@@ -358,6 +412,15 @@ Espere a página assentar antes de concluir que uma regra não está aplicando.
 **Estilo inline vence regra de classe.** Foi por isso que `posicao()` na
 cerimônia devolve só posição e deixa a opacidade no CSS.
 
+**O `sharp` devolve o blur de um buffer de 1 canal em 3 canais.** Em
+`recortar-bichos.mjs`, ler o alfa suavizado de 1 em 1 byte produzia a imagem
+listrada. Use `info.channels` como passo, nunca assuma 1.
+
+**O Next guarda as imagens otimizadas em `.next/cache/images`.** Se você
+regerar um arquivo mantendo o mesmo nome, o navegador continua recebendo a
+versão velha e você vai debugar CSS à toa. `rm -rf .next/cache/images` depois
+de rodar `npm run recortar`.
+
 ---
 
 ## Estado atual
@@ -380,6 +443,8 @@ build` limpo.
 - a música é um cover de "Anunciação" baixado do YouTube — material de terceiros
   num site público, decisão do responsável
 - `t.js` na raiz não faz parte do projeto; confirmar se pode ser removido
+- `images/ultrassom-frente.jpeg` mostra o nome da mãe e o número do exame no
+  cabeçalho impresso. Está na galeria sem recorte, a pedido do responsável
 
 **Fora de escopo por decisão:** painel administrativo, login, gateway de
 pagamento, controle de estoque.

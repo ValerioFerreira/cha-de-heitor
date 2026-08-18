@@ -4,40 +4,73 @@ import { useActionState, useEffect, useState } from "react";
 import { CONTEUDO } from "@/data/content";
 import { registrarRsvp } from "@/app/actions";
 import { Reveal } from "@/components/shared/reveal";
+import { Bicho } from "@/components/shared/bicho";
 import { Balao } from "@/components/art/motifs";
 
-/* ── 05 · o dia ────────────────────────────────────────────── */
+/* ── 04 · o dia ────────────────────────────────────────────── */
+
+/** Os balões sobem atrás da mensagem, cada um no seu tempo. */
+const BALOES = [
+  { x: 6, tam: 46, cor: "#d1e2f3", dur: 22, atraso: 0, deriva: 14 },
+  { x: 19, tam: 30, cor: "#f0d8b6", dur: 28, atraso: 6, deriva: -10 },
+  { x: 33, tam: 22, cor: "#e6d3b4", dur: 34, atraso: 14, deriva: 8 },
+  { x: 62, tam: 26, cor: "#cfe0ef", dur: 30, atraso: 3, deriva: -12 },
+  { x: 78, tam: 52, cor: "#f0d8b6", dur: 20, atraso: 10, deriva: 16 },
+  { x: 91, tam: 34, cor: "#d1e2f3", dur: 26, atraso: 17, deriva: -8 },
+];
 
 export function Evento() {
   const { evento } = CONTEUDO;
 
   return (
     <section id="evento" className="evento">
-      <Reveal as="p" className="rotulo">{evento.rotulo}</Reveal>
+      <div className="ceu" aria-hidden>
+        {BALOES.map((b, i) => (
+          <span
+            key={i}
+            className="balao"
+            style={
+              {
+                left: `${b.x}%`,
+                width: `${b.tam}px`,
+                "--dur": `${b.dur}s`,
+                "--atraso": `${-b.atraso}s`,
+                "--deriva": `${b.deriva}px`,
+              } as React.CSSProperties
+            }
+          >
+            <Balao cor={b.cor} />
+          </span>
+        ))}
+      </div>
 
-      <Reveal atraso={100} forca="destaque">
-        <p className="data">{evento.data}</p>
-        <p className="hora">
-          {evento.diaSemana} · {evento.hora}
-        </p>
-      </Reveal>
+      <div className="conteudo">
+        <Reveal as="p" className="rotulo">{evento.rotulo}</Reveal>
 
-      <Reveal atraso={220}>
-        <p className="local">{evento.local}</p>
-        <p className="cidade">{evento.cidade}</p>
-      </Reveal>
+        <Reveal atraso={100} forca="destaque">
+          <p className="data">{evento.data}</p>
+          <p className="hora">
+            {evento.diaSemana} · {evento.hora}
+          </p>
+        </Reveal>
 
-      <Reveal atraso={320}>
-        <Contagem />
-      </Reveal>
+        <Reveal atraso={220}>
+          <p className="local">{evento.local}</p>
+          <p className="cidade">{evento.cidade}</p>
+        </Reveal>
 
-      <Reveal atraso={420}>
-        <a className="mapa" href={evento.mapa} target="_blank" rel="noopener noreferrer">
-          Como chegar
-        </a>
-      </Reveal>
+        <Reveal atraso={320}>
+          <Contagem />
+        </Reveal>
 
-      <Balao className="balao" cor="#e6d3b4" />
+        <Reveal atraso={420}>
+          <a className="mapa" href={evento.mapa} target="_blank" rel="noopener noreferrer">
+            Como chegar
+          </a>
+        </Reveal>
+      </div>
+
+      <Bicho nome="leao" className="leao" />
 
       <style jsx>{`
         .evento {
@@ -46,7 +79,34 @@ export function Evento() {
           max-width: 900px;
           margin-inline: auto;
           text-align: center;
+          overflow: hidden;
         }
+        .ceu {
+          position: absolute;
+          inset: 0;
+          pointer-events: none;
+          z-index: 0;
+        }
+        .balao {
+          position: absolute;
+          bottom: -18%;
+          display: block;
+          opacity: 0;
+          animation: subir-balao var(--dur) linear var(--atraso) infinite;
+        }
+        .balao :global(svg) { width: 100%; height: auto; }
+        @keyframes subir-balao {
+          0% { transform: translate3d(0, 0, 0) rotate(-3deg); opacity: 0; }
+          12% { opacity: 0.5; }
+          80% { opacity: 0.36; }
+          100% {
+            transform: translate3d(var(--deriva), -125svh, 0) rotate(4deg);
+            opacity: 0;
+          }
+        }
+
+        .conteudo { position: relative; z-index: 1; }
+
         .evento :global(.rotulo) {
           font-family: var(--font-editorial);
           font-style: italic;
@@ -89,26 +149,22 @@ export function Evento() {
           padding: 0.95rem 2rem;
           border: 1px solid var(--color-navy);
           color: var(--color-navy);
+          background: rgba(251, 247, 240, 0.5);
           text-decoration: none;
           transition: background 320ms ease, color 320ms ease;
         }
         .mapa:hover { background: var(--color-navy); color: var(--color-linho); }
 
-        .evento :global(.balao) {
+        .evento :global(.leao) {
           position: absolute;
-          right: clamp(0.5rem, 4vw, 3rem);
-          top: 12%;
-          width: clamp(34px, 7vw, 52px);
-          height: auto;
-          opacity: 0.75;
-          animation: flutuar 9s ease-in-out infinite;
+          left: clamp(-1rem, 1vw, 1rem);
+          bottom: clamp(0.5rem, 2vw, 1.5rem);
+          width: clamp(76px, 17vw, 116px);
+          z-index: 1;
         }
-        @keyframes flutuar {
-          0%, 100% { transform: translateY(0) rotate(-2deg); }
-          50% { transform: translateY(-16px) rotate(2deg); }
-        }
+
         @media (prefers-reduced-motion: reduce) {
-          .evento :global(.balao) { animation: none; }
+          .balao { animation: none; opacity: 0.28; bottom: 12%; }
         }
       `}</style>
     </section>
@@ -212,7 +268,7 @@ function Parte({ n, rotulo, pad }: { n: number; rotulo: string; pad?: boolean })
   );
 }
 
-/* ── 06 · confirmação de presença ──────────────────────────── */
+/* ── 05 · confirmação de presença ──────────────────────────── */
 
 export function Rsvp() {
   const { rsvp } = CONTEUDO;
@@ -233,16 +289,15 @@ export function Rsvp() {
 
   return (
     <section id="rsvp" className="rsvp">
-      <Reveal as="p" className="rotulo">{rsvp.rotulo}</Reveal>
-      <Reveal atraso={100}>
+      <Bicho nome="passaro" className="passaro" />
+
+      <Reveal>
         <h2 className="titulo">{rsvp.titulo}</h2>
         <p className="nota">{rsvp.nota}</p>
       </Reveal>
 
       {estado.ok ? (
-        <p className="pronto">
-          Anotado. Até dia 20 — vai ser bom demais ter você lá.
-        </p>
+        <p className="pronto">Anotado. Até dia 20 — vai ser bom demais ter você lá.</p>
       ) : (
         <Reveal atraso={200}>
           <form action={enviar}>
@@ -283,16 +338,16 @@ export function Rsvp() {
 
       <style jsx>{`
         .rsvp {
+          position: relative;
           padding: clamp(4rem, 12vh, 7rem) clamp(1.5rem, 6vw, 4rem);
           max-width: 620px;
           margin-inline: auto;
         }
-        .rsvp :global(.rotulo) {
-          font-family: var(--font-editorial);
-          font-style: italic;
-          font-size: 0.92rem;
-          color: var(--color-casca);
-          margin-bottom: 0.75rem;
+        .rsvp :global(.passaro) {
+          position: absolute;
+          top: clamp(1.5rem, 6vw, 3rem);
+          right: clamp(-1rem, 0vw, 0rem);
+          width: clamp(66px, 15vw, 96px);
         }
         .titulo {
           font-family: var(--font-editorial);
