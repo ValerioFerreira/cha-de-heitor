@@ -498,6 +498,11 @@ cegonha em `public/images/bebe-cegonha.svg` traz o próprio movimento (asas e
 balanço, em `animate`/`animateTransform`). O otimizador do Next não serve SVG
 sem `dangerouslyAllowSVG`, e passar por ele mataria a animação.
 
+**O GSAP anda pelo `requestAnimationFrame`.** Quando o painel de preview
+não está pintando quadros, os tweens congelam no meio — as cartas do leque
+ficam em opacidade 0 e parece que a entrada quebrou. Não quebrou: tire um
+screenshot (que força a composição) antes de investigar.
+
 **O Next guarda as imagens otimizadas em `.next/cache/images`.** Se você
 regerar um arquivo mantendo o mesmo nome, o navegador continua recebendo a
 versão velha e você vai debugar CSS à toa. `rm -rf .next/cache/images` depois

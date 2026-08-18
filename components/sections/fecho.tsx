@@ -17,6 +17,10 @@ import { Reveal } from "@/components/shared/reveal";
  * Cada carta é uma lâmina de papel e a foto entra inteira, sem corte: o
  * ultrassom de perfil é largo, os retratos são altos, e cortar qualquer um
  * dos dois tira justamente o que importa.
+ *
+ * São sete — o número para o qual `FAN_POSITIONS` foi desenhado, então o
+ * leque abre exatamente como o componente prevê. Ao mexer nesta lista,
+ * prefira manter a conta ímpar: com número par o leque fica torto.
  */
 const CARTAS: CardItem[] = [
   {
@@ -32,10 +36,22 @@ const CARTAS: CardItem[] = [
     altura: 1807,
   },
   {
-    imgUrl: "/images/casal-2.jpg",
-    alt: "Valério beijando a testa de Nathalie, as mãos sobre a barriga",
-    largura: 4057,
-    altura: 6085,
+    imgUrl: "/images/casal-3.jpg",
+    alt: "Valério e Nathalie sentados na janela, ela de tricô vermelho",
+    largura: 4362,
+    altura: 6543,
+  },
+  {
+    imgUrl: "/images/casal-4.jpg",
+    alt: "Valério e Nathalie de mãos dadas, ele olhando para ela",
+    largura: 4423,
+    altura: 6635,
+  },
+  {
+    imgUrl: "/images/casal-5.jpg",
+    alt: "Valério beijando a barriga de Nathalie",
+    largura: 4399,
+    altura: 6598,
   },
   {
     imgUrl: "/images/ultrassom-frente.jpeg",
@@ -44,10 +60,10 @@ const CARTAS: CardItem[] = [
     altura: 909,
   },
   {
-    imgUrl: "/images/familia.jpg",
-    alt: "Ilustração de Valério e Nathalie com o Heitor no colo",
-    largura: 1684,
-    altura: 2528,
+    imgUrl: "/images/casal-2.jpg",
+    alt: "Valério beijando a testa de Nathalie, as mãos sobre a barriga",
+    largura: 4057,
+    altura: 6085,
   },
 ];
 
