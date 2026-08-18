@@ -68,7 +68,7 @@ function limiteDoContainer(container: HTMLElement, carta: HTMLElement | undefine
 /** Encolhe os deslocamentos verticais quando a janela é baixa demais. */
 function getHeightMultiplier(width: number) {
   let idealPx: number;
-  if (width < 480) idealPx = 22 * 16;
+  if (width < 480) idealPx = 20 * 16;
   else if (width < 640) idealPx = 26 * 16;
   else if (width < 768) idealPx = 28 * 16;
   else if (width < 1024) idealPx = 34 * 16;
@@ -77,6 +77,14 @@ function getHeightMultiplier(width: number) {
   const available = window.innerHeight * 0.7;
   if (available >= idealPx) return 1;
   return available / idealPx;
+}
+
+/**
+ * Uma carta anda um lugar por vez. Se o lugar novo está a mais de um de
+ * distância do antigo, ela não andou: deu a volta de uma ponta à outra.
+ */
+function deuAVolta(anterior: number | undefined, atual: number) {
+  return anterior !== undefined && Math.abs(atual - anterior) > 1;
 }
 
 function getSlotConfig(totalCards: number, slot: number) {
@@ -100,15 +108,25 @@ export default function CardFanCarousel({ cards }: { cards: CardItem[] }) {
   const directionRef = useRef<"left" | "right" | null>(null);
   const prevVisible = useRef<Set<number>>(new Set());
 
+  const prevSlots = useRef<Map<number, number>>(new Map());
+
   const totalCards = cards.length;
-  const needsPagination = totalCards > MAX_VISIBLE;
-  const [centerIndex, setCenterIndex] = useState(needsPagination ? HALF : totalCards >> 1);
+  /** só quando não cabem todas é que algumas ficam fora de cena */
+  const janelaLimitada = totalCards > MAX_VISIBLE;
+  /** mas girar o leque faz sentido a partir de duas cartas */
+  const podeGirar = totalCards > 1;
+  const [centerIndex, setCenterIndex] = useState(janelaLimitada ? HALF : totalCards >> 1);
 
   const getVisibleMap = useCallback(
     (center: number) => {
       const map = new Map<number, number>();
-      if (!needsPagination) {
-        cards.forEach((_, i) => map.set(i, i));
+      if (!janelaLimitada) {
+        // todas continuam em cena, mas os lugares giram: a carta `center`
+        // vai para o lugar do meio e as outras se acomodam em volta
+        const meio = totalCards >> 1;
+        for (let i = 0; i < totalCards; i++) {
+          map.set(i, (((i - center + meio) % totalCards) + totalCards) % totalCards);
+        }
         return map;
       }
       for (let slot = 0; slot < MAX_VISIBLE; slot++) {
@@ -116,19 +134,44 @@ export default function CardFanCarousel({ cards }: { cards: CardItem[] }) {
       }
       return map;
     },
-    [totalCards, needsPagination, cards]
+    [totalCards, janelaLimitada]
   );
 
   const cycle = useCallback(
     (direction: "left" | "right") => {
-      if (isAnimating.current || !needsPagination) return;
+      if (isAnimating.current || !podeGirar) return;
       isAnimating.current = true;
       directionRef.current = direction;
       setCenterIndex((prev) =>
         direction === "right" ? (prev + 1) % totalCards : (prev - 1 + totalCards) % totalCards
       );
     },
-    [totalCards, needsPagination]
+    [totalCards, podeGirar]
+  );
+
+  // os ouvintes de gesto são registrados uma vez; estas referências deixam
+  // que eles sempre chamem a versão atual
+  const cycleRef = useRef(cycle);
+  const podeGirarRef = useRef(podeGirar);
+  useEffect(() => {
+    cycleRef.current = cycle;
+    podeGirarRef.current = podeGirar;
+  }, [cycle, podeGirar]);
+
+  /** traz uma carta específica para a frente, no menor caminho */
+  const trazerParaFrente = useCallback(
+    (indice: number) => {
+      if (isAnimating.current || !podeGirar) return;
+      setCenterIndex((prev) => {
+        if (prev === indice) return prev;
+        const bruto = indice - prev;
+        const volta = ((bruto % totalCards) + totalCards) % totalCards;
+        directionRef.current = volta <= totalCards / 2 ? "right" : "left";
+        isAnimating.current = true;
+        return indice;
+      });
+    },
+    [totalCards, podeGirar]
   );
 
   useEffect(() => {
@@ -147,7 +190,7 @@ export default function CardFanCarousel({ cards }: { cards: CardItem[] }) {
       limiteDoContainer(container, cardElements[0])
     );
     const hMult = getHeightMultiplier(window.innerWidth);
-    const slotCount = needsPagination ? MAX_VISIBLE : totalCards;
+    const slotCount = janelaLimitada ? MAX_VISIBLE : totalCards;
     const config = (slot: number) => getSlotConfig(slotCount, slot);
 
     if (isFirstMount) isAnimating.current = true;
@@ -195,6 +238,21 @@ export default function CardFanCarousel({ cards }: { cards: CardItem[] }) {
             opacity: 0,
           });
           gsap.to(card, { ...target, duration: 0.6, ease: "power2.out", onComplete: onCardDone });
+        } else if (deuAVolta(prevSlots.current.get(cardIndex), slot)) {
+          // andou um lugar só, mas de uma ponta à outra: deslizar por cima
+          // de todo o leque ficaria estranho. Some por baixo e volta do
+          // outro lado, que é o que uma mão faria com as cartas.
+          gsap
+            .timeline({ onComplete: onCardDone })
+            .to(card, { opacity: 0, scale: 0.62, duration: 0.22, ease: "power2.in" })
+            .set(card, {
+              x: `${x * multiplier}rem`,
+              y: `${y * hMult}rem`,
+              rotation: rot,
+              scale: scale * 0.82,
+              zIndex,
+            })
+            .to(card, { ...target, duration: 0.45, ease: "power2.out" });
         } else {
           gsap.to(card, { ...target, duration: 0.5, ease: "power2.out", onComplete: onCardDone });
         }
@@ -215,6 +273,7 @@ export default function CardFanCarousel({ cards }: { cards: CardItem[] }) {
     });
 
     prevVisible.current = new Set(visibleMap.keys());
+    prevSlots.current = new Map(visibleMap);
 
     const visibleEntries: { el: HTMLElement; slot: number }[] = [];
     cardElements.forEach((el, i) => {
@@ -314,13 +373,72 @@ export default function CardFanCarousel({ cards }: { cards: CardItem[] }) {
     };
     window.addEventListener("resize", onResize);
 
+    /* ── arrastar ────────────────────────────────────────────────────
+       O gesto só assume o controle quando fica claro que é horizontal;
+       enquanto a direção não estiver decidida, a página continua podendo
+       rolar normalmente. */
+    const LIMIAR = 52;
+    let apontador: number | null = null;
+    let x0 = 0;
+    let y0 = 0;
+    let eixo: "horizontal" | "vertical" | null = null;
+
+    const aoDescer = (e: PointerEvent) => {
+      if (!podeGirarRef.current) return;
+      apontador = e.pointerId;
+      x0 = e.clientX;
+      y0 = e.clientY;
+      eixo = null;
+    };
+
+    const aoMover = (e: PointerEvent) => {
+      if (apontador !== e.pointerId) return;
+      const dx = e.clientX - x0;
+      const dy = e.clientY - y0;
+
+      if (!eixo) {
+        if (Math.abs(dx) < 10 && Math.abs(dy) < 10) return;
+        eixo = Math.abs(dx) > Math.abs(dy) ? "horizontal" : "vertical";
+        if (eixo === "vertical") apontador = null; // é rolagem da página
+        return;
+      }
+
+      if (Math.abs(dx) >= LIMIAR) {
+        cycleRef.current(dx < 0 ? "right" : "left");
+        // rearma a partir daqui: um arrasto longo passa várias cartas
+        x0 = e.clientX;
+        y0 = e.clientY;
+      }
+    };
+
+    const aoSoltar = () => {
+      apontador = null;
+      eixo = null;
+    };
+
+    container.addEventListener("pointerdown", aoDescer);
+    container.addEventListener("pointermove", aoMover);
+    container.addEventListener("pointerup", aoSoltar);
+    container.addEventListener("pointercancel", aoSoltar);
+
+    const aoTeclar = (e: KeyboardEvent) => {
+      if (e.key === "ArrowLeft") { e.preventDefault(); cycleRef.current("left"); }
+      if (e.key === "ArrowRight") { e.preventDefault(); cycleRef.current("right"); }
+    };
+    container.addEventListener("keydown", aoTeclar);
+
     return () => {
       enterHandlers.forEach(({ el, handler }) => el.removeEventListener("mouseenter", handler));
       container.removeEventListener("mouseleave", onMouseLeave);
+      container.removeEventListener("pointerdown", aoDescer);
+      container.removeEventListener("pointermove", aoMover);
+      container.removeEventListener("pointerup", aoSoltar);
+      container.removeEventListener("pointercancel", aoSoltar);
+      container.removeEventListener("keydown", aoTeclar);
       window.removeEventListener("resize", onResize);
       if (leaveTimer) clearTimeout(leaveTimer);
     };
-  }, [centerIndex, totalCards, getVisibleMap, needsPagination]);
+  }, [centerIndex, totalCards, getVisibleMap, janelaLimitada]);
 
   if (!totalCards) return null;
 
@@ -332,21 +450,35 @@ export default function CardFanCarousel({ cards }: { cards: CardItem[] }) {
 
   return (
     <section className="leque">
-      <div ref={containerRef} className="fan-layout">
+      <div
+        ref={containerRef}
+        className="fan-layout"
+        role={podeGirar ? "group" : undefined}
+        aria-label={podeGirar ? "Fotos do Heitor. Arraste para o lado ou use as setas." : undefined}
+        tabIndex={podeGirar ? 0 : undefined}
+      >
         {cards.map((card, index) => (
-          <div key={index} className="fan-card">
+          <div
+            key={index}
+            className="fan-card"
+            onClick={() => trazerParaFrente(index)}
+            role={podeGirar ? "button" : undefined}
+            tabIndex={-1}
+            aria-label={podeGirar ? `Ver ${card.alt ?? "esta foto"}` : undefined}
+          >
             <Image
               src={card.imgUrl}
               alt={card.alt ?? ""}
               width={card.largura}
               height={card.altura}
               sizes="(max-width: 640px) 60vw, 340px"
+              draggable={false}
             />
           </div>
         ))}
       </div>
 
-      {needsPagination && (
+      {podeGirar && (
         <div className="controles">
           <button type="button" onClick={() => cycle("left")} aria-label="Foto anterior">
             {chevron("left")}
@@ -378,7 +510,16 @@ export default function CardFanCarousel({ cards }: { cards: CardItem[] }) {
           justify-content: center;
           align-items: center;
           width: 100%;
-          height: 22rem;
+          height: 20rem;
+          /* deixa a página rolar na vertical e reserva o horizontal para o leque */
+          touch-action: pan-y;
+          cursor: grab;
+          outline: none;
+        }
+        .fan-layout:active { cursor: grabbing; }
+        .fan-layout:focus-visible {
+          outline: 2px solid var(--color-taupe);
+          outline-offset: 8px;
         }
         @media (min-width: 480px) { .fan-layout { height: 26rem; } }
         @media (min-width: 640px) { .fan-layout { height: 28rem; } }
@@ -395,6 +536,8 @@ export default function CardFanCarousel({ cards }: { cards: CardItem[] }) {
           box-shadow: 0 24px 44px -26px rgba(43, 33, 25, 0.6);
           will-change: transform;
           opacity: 0;
+          user-select: none;
+          -webkit-user-select: none;
         }
         /* nada é cortado: a foto entra inteira e o papel faz a moldura */
         .fan-card :global(img) {

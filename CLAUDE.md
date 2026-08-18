@@ -257,6 +257,27 @@ paginação circular. Três coisas mudaram:
 **Use um número ímpar de cartas.** `getSlotConfig` calcula o centro com
 `totalCards >> 1`, então com número par o leque fica torto para um lado.
 
+**O leque gira com qualquer quantidade.** No original, `needsPagination`
+(mais de 7 cartas) fazia dois trabalhos: decidir se algumas ficam fora de
+cena *e* liberar o giro. Com 5 fotos ninguém saía do lugar e as de trás
+nunca chegavam à frente. Hoje são duas coisas separadas: `janelaLimitada`
+(> 7) e `podeGirar` (> 1). Quando cabem todas, o mapa de lugares gira e a
+carta escolhida vai para o meio.
+
+Uma carta anda um lugar por vez. Quando o lugar novo está a mais de um de
+distância, ela deu a volta de uma ponta à outra — `deuAVolta()` detecta isso
+e troca o deslize por sumir e reaparecer do outro lado. Sem isso a carta
+atravessa o leque inteiro por cima, e fica horrível.
+
+Formas de mudar a carta da frente: arrastar o dedo (limiar de 52px, com o
+eixo decidido nos primeiros 10px para não roubar a rolagem vertical da
+página), tocar numa carta de trás, as setas, ou as flechas do teclado.
+`touch-action: pan-y` no `.fan-layout` é o que mantém a página rolando.
+
+A altura do `.fan-layout` e o `idealPx` de `getHeightMultiplier()` **têm que
+andar juntos**. E lembre que a carta das pontas gira 21°: a caixa dela é
+bem mais larga que a largura própria, e é isso que decide se cabe na tela.
+
 ## A cerimônia do envio
 
 `components/art/ceremony.tsx`. É a peça mais delicada do projeto e a mais fácil
