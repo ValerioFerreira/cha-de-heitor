@@ -83,7 +83,8 @@ components/
   art/        as ilustrações e a cerimônia (tudo SVG autoral)
   sections/   as seções da home
   presente/   o fluxo de escolha + PIX + mensagem
-  shared/     atmosfera (fundo), música, reveal
+  shared/     atmosfera (fundo), música, reveal, bichos
+  ui/         card-fan-carousel — o leque de fotos, do 21st.dev
 
 lib/
   pix.ts      BR Code EMV + CRC16
@@ -235,17 +236,26 @@ respeitado em todo componente que anima — mantenha assim.
 
 ## A galeria
 
-`components/sections/fecho.tsx`. Quatro imagens que se dissolvem umas nas
-outras conforme a página rola, num palco `sticky`.
+Um **leque de cartas**: `components/ui/card-fan-carousel.tsx`, componente do
+21st.dev, montado por `Galeria` em `components/sections/fecho.tsx`.
 
-**Nenhuma imagem pode ser recortada.** Não há máscara em arco nem
-`object-fit: cover` aqui: o ultrassom é largo, os retratos são altos, e
-cortar qualquer um dos dois tira justamente o que importa. Cada imagem entra
-inteira, com `max-width`/`max-height`, e o quadro se ajusta a ela. Isso já foi
-feito errado uma vez — o ultrassom apareceu cortado e o responsável reclamou.
+Do original ficaram intactos a matemática do leque (`FAN_POSITIONS`), os
+multiplicadores, a entrada elástica com GSAP, o empurra-empurra no hover e a
+paginação circular. Três coisas mudaram:
 
-A escala do "zoom" fica entre 0.985 e 1.015 justamente para nunca ultrapassar
-o quadro.
+- `.fan-layout` e `.fan-card` **não vinham no snippet** — foram escritas aqui.
+  As alturas do `.fan-layout` têm que bater com os pontos de quebra de
+  `getHeightMultiplier()`, senão a conta do deslocamento vertical erra.
+- **Nenhuma imagem é recortada:** cada carta é uma lâmina de papel e a foto
+  entra com `object-fit: contain`. O ultrassom de perfil é largo, os retratos
+  são altos, e cortar qualquer um tira o que importa. Já houve reclamação.
+- `limiteDoContainer()` foi acrescentado. O leque original abre até ±30rem,
+  medida para um contêiner de 1280px com cartas menores; com as nossas, as
+  pontas saíam da tela. A conta precisa levar em conta que a carta das pontas
+  está **girada 21°** — a caixa dela é bem mais larga que a largura própria.
+
+**Use um número ímpar de cartas.** `getSlotConfig` calcula o centro com
+`totalCards >> 1`, então com número par o leque fica torto para um lado.
 
 ## A cerimônia do envio
 
@@ -319,6 +329,13 @@ A dobra usa `transform-box: view-box` com origem na dobradiça (`110px 10px`,
 a borda de cima) e `perspective(560px)` no próprio `transform`. Sem a
 perspectiva, `rotateX` vira um espelhamento chapado em vez de uma aba
 tombando.
+
+### O fim da cena
+
+O "Voltar ao início" na página do presente aparece por **estado**, via o
+callback `onFim` da cerimônia — não por um atraso fixo no CSS. O callback tem
+que ser estável (`useCallback`): se a identidade mudar a cada render, o efeito
+da cerimônia reinicia o cronômetro da etapa em curso.
 
 ### Como conferir a cena sem olhar
 
@@ -454,6 +471,11 @@ nulidade.
 **Padrão de `.vercelignore` sem barra inicial casa em qualquer nível.** É a
 sintaxe do `.gitignore`: `images/` leva junto `public/images/`. Ancore sempre
 com `/images/`. Isso já apagou o `public/` inteiro de um deploy.
+
+**SVG com animação SMIL tem que entrar como `<img>`, não como `<Image>`.** A
+cegonha em `public/images/bebe-cegonha.svg` traz o próprio movimento (asas e
+balanço, em `animate`/`animateTransform`). O otimizador do Next não serve SVG
+sem `dangerouslyAllowSVG`, e passar por ele mataria a animação.
 
 **O Next guarda as imagens otimizadas em `.next/cache/images`.** Se você
 regerar um arquivo mantendo o mesmo nome, o navegador continua recebendo a

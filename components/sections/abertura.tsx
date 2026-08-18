@@ -167,7 +167,10 @@ export function Historia() {
 
   return (
     <section id="historia" className="historia">
-      <Bicho nome="passaro" className="passaro" espelhado />
+      {/* A cegonha traz a própria animação em SMIL (asas e balanço), então
+          entra como <img> — o otimizador do Next não serve SVG animado e
+          um <Image> aqui mataria o movimento. */}
+      <img src="/images/bebe-cegonha.svg" alt="" aria-hidden className="cegonha" />
 
       <Reveal as="p" className="rotulo">{historia.rotulo}</Reveal>
 
@@ -187,19 +190,34 @@ export function Historia() {
           max-width: 820px;
           margin-inline: auto;
           text-align: center;
+          /* a cegonha sai pela esquerda de propósito; sem isto ela cria
+             barra de rolagem horizontal no celular */
+          overflow: hidden;
         }
-        .historia :global(.passaro) {
+        /* ao fundo, ao lado do texto: no celular ela sobe para o canto,
+           bem apagada, para não disputar com a leitura */
+        .cegonha {
           position: absolute;
-          top: clamp(1rem, 4vw, 2rem);
-          right: clamp(-0.5rem, 2vw, 2rem);
-          width: clamp(72px, 17vw, 112px);
-          animation: voar 8s ease-in-out infinite;
+          z-index: 0;
+          pointer-events: none;
+          top: 2%;
+          left: -14%;
+          width: clamp(190px, 52vw, 300px);
+          height: auto;
+          opacity: 0.3;
         }
-        @keyframes voar {
-          0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-12px); }
+        @media (min-width: 860px) {
+          .cegonha {
+            top: 50%;
+            left: -12%;
+            transform: translateY(-50%);
+            width: clamp(300px, 30vw, 400px);
+            opacity: 0.55;
+          }
         }
         .historia :global(.rotulo) {
+          position: relative;
+          z-index: 1;
           font-family: var(--font-editorial);
           font-style: italic;
           font-size: 0.92rem;
@@ -207,6 +225,8 @@ export function Historia() {
           margin-bottom: clamp(1.5rem, 5vw, 2.5rem);
         }
         .texto {
+          position: relative;
+          z-index: 1;
           font-family: var(--font-editorial);
           font-size: clamp(1.28rem, 5.4vw, 2rem);
           line-height: 1.45;
@@ -214,6 +234,8 @@ export function Historia() {
           text-wrap: balance;
         }
         .historia :global(.fim) {
+          position: relative;
+          z-index: 1;
           margin-top: clamp(2rem, 7vw, 3.5rem);
           display: flex;
           flex-direction: column;
@@ -225,9 +247,6 @@ export function Historia() {
           font-family: var(--font-mao);
           font-size: clamp(1.1rem, 4.4vw, 1.35rem);
           color: var(--color-casca);
-        }
-        @media (prefers-reduced-motion: reduce) {
-          .historia :global(.passaro) { animation: none; }
         }
       `}</style>
     </section>

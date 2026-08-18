@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import QRCode from "qrcode";
 import { emReais, type Gift } from "@/data/gifts";
 import { registrarEscolha } from "@/app/actions";
@@ -27,6 +27,10 @@ export function Fluxo({ gift, codigos }: { gift: Gift; codigos: string[] }) {
   const [enviando, setEnviando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
   const [cerimonia, setCerimonia] = useState(false);
+  const [cenaTerminou, setCenaTerminou] = useState(false);
+  // estável: se a identidade mudasse a cada render, a cerimônia reiniciaria
+  // o cronômetro da etapa em curso
+  const aoTerminarCena = useCallback(() => setCenaTerminou(true), []);
 
   const codigo = codigos[quantidade - 1] ?? "";
   const total = gift.precoCentavos * quantidade;
@@ -73,10 +77,15 @@ export function Fluxo({ gift, codigos }: { gift: Gift; codigos: string[] }) {
           presenteSrc={gift.imagem}
           presenteNome={gift.nome}
           rodando
+          onFim={aoTerminarCena}
         />
-        <Link href="/" className="voltar-inicio">
-          Voltar ao início
-        </Link>
+        {/* só aparece quando a cena acaba de verdade — nada de adivinhar
+            a duração com um atraso fixo no CSS */}
+        {cenaTerminou && (
+          <Link href="/" className="voltar-inicio">
+            Voltar ao início
+          </Link>
+        )}
         <style jsx>{`
           .cerimonia-tela {
             min-height: 100svh;
@@ -97,7 +106,7 @@ export function Fluxo({ gift, codigos }: { gift: Gift; codigos: string[] }) {
             text-decoration: none;
             border-bottom: 1px solid rgba(179, 146, 111, 0.4);
             padding-bottom: 2px;
-            animation: surgir 1s ease 19s both;
+            animation: surgir 900ms ease both;
           }
           @keyframes surgir { from { opacity: 0; } to { opacity: 1; } }
         `}</style>

@@ -1,8 +1,9 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { CONTEUDO } from "@/data/content";
+import CardFanCarousel, { type CardItem } from "@/components/ui/card-fan-carousel";
 import { Assinatura } from "@/components/art/signature";
 import { Faisca } from "@/components/art/motifs";
 import { Reveal } from "@/components/shared/reveal";
@@ -10,150 +11,59 @@ import { Reveal } from "@/components/shared/reveal";
 /* ── 06 · a galeria ────────────────────────────────────────── */
 
 /**
- * Nenhuma imagem é recortada: cada uma entra inteira, no formato em que foi
- * entregue, e o quadro se ajusta a ela. É por isso que aqui não há máscara
- * em arco nem `object-fit: cover` — o ultrassom é largo, os retratos são
- * altos, e cortar qualquer um dos dois tirava justamente o que importa.
+ * As fotos num leque de cartas (componente do 21st.dev, em
+ * `components/ui/card-fan-carousel.tsx`).
+ *
+ * Cada carta é uma lâmina de papel e a foto entra inteira, sem corte: o
+ * ultrassom de perfil é largo, os retratos são altos, e cortar qualquer um
+ * dos dois tira justamente o que importa.
  */
-const CENAS = [
+const CARTAS: CardItem[] = [
   {
-    src: "/images/casal-1.jpg",
+    imgUrl: "/images/casal-1.jpg",
     alt: "Valério e Nathalie sentados no chão, sorrindo",
-    w: 3662,
-    h: 5493,
+    largura: 3662,
+    altura: 5493,
   },
   {
-    src: "/images/ultrassom-perfil.jpeg",
+    imgUrl: "/images/ultrassom-perfil.jpeg",
     alt: "Ultrassom de perfil do Heitor",
-    w: 2724,
-    h: 1807,
+    largura: 2724,
+    altura: 1807,
   },
   {
-    src: "/images/casal-2.jpg",
+    imgUrl: "/images/casal-2.jpg",
     alt: "Valério beijando a testa de Nathalie, as mãos sobre a barriga",
-    w: 4057,
-    h: 6085,
+    largura: 4057,
+    altura: 6085,
   },
   {
-    src: "/images/ultrassom-frente.jpeg",
+    imgUrl: "/images/ultrassom-frente.jpeg",
     alt: "Ultrassom do rostinho do Heitor",
-    w: 566,
-    h: 909,
+    largura: 566,
+    altura: 909,
+  },
+  {
+    imgUrl: "/images/familia.jpg",
+    alt: "Ilustração de Valério e Nathalie com o Heitor no colo",
+    largura: 1684,
+    altura: 2528,
   },
 ];
 
 export function Galeria() {
-  const trilho = useRef<HTMLDivElement>(null);
-  const [p, setP] = useState(0);
-
-  useEffect(() => {
-    const raf = { id: 0 };
-    const medir = () => {
-      const el = trilho.current;
-      raf.id = 0;
-      if (!el) return;
-      const r = el.getBoundingClientRect();
-      const percorrivel = r.height - window.innerHeight;
-      if (percorrivel <= 0) return setP(0);
-      setP(Math.min(1, Math.max(0, -r.top / percorrivel)));
-    };
-    const aoRolar = () => {
-      if (!raf.id) raf.id = requestAnimationFrame(medir);
-    };
-    medir();
-    window.addEventListener("scroll", aoRolar, { passive: true });
-    window.addEventListener("resize", aoRolar);
-    return () => {
-      window.removeEventListener("scroll", aoRolar);
-      window.removeEventListener("resize", aoRolar);
-      cancelAnimationFrame(raf.id);
-    };
-  }, []);
-
-  const atual = p * (CENAS.length - 1);
-
   return (
-    <section id="galeria" className="trilho" ref={trilho}>
-      <div className="palco">
-        <div className="janela">
-          {CENAS.map((c, i) => {
-            const d = Math.abs(atual - i);
-            const peso = Math.max(0, 1 - d);
-            return (
-              <figure key={c.src} style={{ opacity: peso, zIndex: Math.round(peso * 10) }}>
-                <Image
-                  src={c.src}
-                  alt={c.alt}
-                  width={c.w}
-                  height={c.h}
-                  sizes="(max-width: 780px) 88vw, 60vw"
-                  style={{
-                    // a câmera nunca pára: a imagem em foco continua se
-                    // aproximando devagar, mas sem nunca ultrapassar o quadro
-                    transform: `scale(${0.985 + (1 - d) * 0.03})`,
-                    filter: `blur(${d * 6}px)`,
-                  }}
-                />
-              </figure>
-            );
-          })}
-        </div>
-
-        <div className="pontos" aria-hidden>
-          {CENAS.map((c, i) => (
-            <span key={c.src} data-ativo={Math.round(atual) === i} />
-          ))}
-        </div>
-      </div>
+    <section id="galeria" className="galeria">
+      <Reveal forca="destaque">
+        <CardFanCarousel cards={CARTAS} />
+      </Reveal>
 
       <style jsx>{`
-        .trilho { height: 340svh; position: relative; }
-        .palco {
-          position: sticky;
-          top: 0;
-          height: 100svh;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          gap: clamp(1.25rem, 4vw, 2rem);
-          padding: clamp(3rem, 8vh, 5rem) clamp(1.25rem, 5vw, 4rem);
-        }
-        .janela {
-          position: relative;
-          width: 100%;
-          flex: 1;
-          min-height: 0;
-          display: grid;
-          place-items: center;
-        }
-        figure {
-          grid-area: 1 / 1;
-          display: grid;
-          place-items: center;
-          transition: opacity 420ms linear;
-        }
-        .janela :global(img) {
-          max-width: min(88vw, 780px);
-          max-height: 68svh;
-          width: auto;
-          height: auto;
-          object-fit: contain;
-          box-shadow: 0 30px 60px -34px rgba(43, 33, 25, 0.55);
-        }
-        .pontos { display: flex; gap: 0.5rem; }
-        .pontos span {
-          width: 5px;
-          height: 5px;
-          border-radius: 50%;
-          background: var(--color-taupe);
-          opacity: 0.28;
-          transition: opacity 400ms ease, transform 400ms ease;
-        }
-        .pontos span[data-ativo="true"] { opacity: 0.85; transform: scale(1.3); }
-
-        @media (prefers-reduced-motion: reduce) {
-          .janela :global(img) { transform: none !important; filter: none !important; }
+        .galeria {
+          padding: clamp(3rem, 10vh, 6rem) clamp(0.5rem, 3vw, 2rem);
+          max-width: 1180px;
+          margin-inline: auto;
+          overflow: hidden;
         }
       `}</style>
     </section>
