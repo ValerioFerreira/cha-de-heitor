@@ -1,11 +1,15 @@
 # Os originais entregues pelo responsável. Só servem para rodar
 # `npm run recortar` — o site lê apenas o que está em public/.
-images/
-audio/
-fonts/
-scripts/
+#
+# A barra no INÍCIO é obrigatória: sem ela, a sintaxe (a mesma do
+# .gitignore) casa com qualquer pasta de mesmo nome em qualquer nível, e
+# `images/` levaria junto o `public/images/` — ou seja, o site inteiro.
+/images/
+/audio/
+/fonts/
+/scripts/
 
 # documentação e sobras
-CLAUDE.md
-PROMPTS-ILUSTRACAO.md
-t.js
+/CLAUDE.md
+/PROMPTS-ILUSTRACAO.md
+/t.js
