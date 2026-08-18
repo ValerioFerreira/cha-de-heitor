@@ -29,13 +29,13 @@ export const CONTEUDO = {
 
   evento: {
     rotulo: "o dia",
-    data: "20 de agosto de 2026",
-    diaSemana: "quinta-feira",
+    data: "22 de agosto de 2026",
+    diaSemana: "sábado",
     hora: "19h30",
     local: "Pizzaria Atlântico",
     cidade: "Olinda, Pernambuco",
     mapa: "https://maps.app.goo.gl/w4tL2K3JvF5vce2m6",
-    quando: "2026-08-20T19:30:00-03:00",
+    quando: "2026-08-22T19:30:00-03:00",
   },
 
   rsvp: {

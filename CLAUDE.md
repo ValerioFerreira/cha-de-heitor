@@ -1,7 +1,7 @@
 # Esperando Heitor
 
 Landing page do chá de fraldas do Heitor, filho de **Valério e Nathalie**.
-Evento: **20 de agosto de 2026, 19h30, Pizzaria Atlântico, Olinda (PE)**.
+Evento: **22 de agosto de 2026, 19h30, Pizzaria Atlântico, Olinda (PE)**.
 
 O convidado entra, conhece o Heitor, confirma presença, escolhe **um** presente,
 paga por PIX, deixa uma mensagem, e vê essa mensagem virar carta, envelope e

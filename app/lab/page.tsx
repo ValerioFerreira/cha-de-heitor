@@ -295,7 +295,7 @@ function SecaoTipografia() {
           Um novo capítulo está começando. E ele tem nome.
         </p>
         <p style={{ fontFamily: "var(--font-ui)", fontSize: "0.95rem", letterSpacing: "0.02em", color: "var(--color-tinta)", marginTop: "1.5rem" }}>
-          Instrument Sans · 20 de agosto de 2026 · 19h30 · Pizzaria Atlântico, Olinda
+          Instrument Sans · 22 de agosto de 2026 · 19h30 · Pizzaria Atlântico, Olinda
         </p>
       </div>
 
@@ -750,7 +750,7 @@ function CardPresente({
 
 /* ── 8. contagem ────────────────────────────────────────── */
 
-const EVENTO = new Date("2026-08-20T19:30:00-03:00");
+const EVENTO = new Date("2026-08-22T19:30:00-03:00");
 
 function SecaoContagem() {
   const [agora, setAgora] = useState<Date | null>(null);

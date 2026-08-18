@@ -1,6 +1,6 @@
 # Esperando Heitor
 
-Site do chá de fraldas do Heitor — **20 de agosto de 2026, 19h30, Restaurante
+Site do chá de fraldas do Heitor — **22 de agosto de 2026, sábado, 19h30,
 Pizzaria Atlântico, Olinda (PE)**.
 
 O convidado conhece o Heitor, confirma presença, escolhe um presente, paga por

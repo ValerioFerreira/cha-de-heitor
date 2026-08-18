@@ -297,7 +297,7 @@ export function Rsvp() {
       </Reveal>
 
       {estado.ok ? (
-        <p className="pronto">Anotado. Até dia 20 — vai ser bom demais ter você lá.</p>
+        <p className="pronto">Anotado. Até sábado — vai ser bom demais ter você lá.</p>
       ) : (
         <Reveal atraso={200}>
           <form action={enviar}>

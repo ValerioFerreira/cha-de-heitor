@@ -5,6 +5,7 @@ import { useState } from "react";
 import { CONTEUDO } from "@/data/content";
 import CardFanCarousel, { type CardItem } from "@/components/ui/card-fan-carousel";
 import { Assinatura } from "@/components/art/signature";
+import { MolduraRetrato } from "@/components/art/frame";
 import { Faisca } from "@/components/art/motifs";
 import { Reveal } from "@/components/shared/reveal";
 
@@ -117,9 +118,7 @@ export function Final() {
       </Reveal>
 
       <Reveal atraso={340}>
-        {/* a máscara dissolve os quatro cantos, para a ilustração terminar
-            no azul da noite em vez de num retângulo */}
-        <div className="familia">
+        <MolduraRetrato className="familia">
           <Image
             src="/images/familia.jpg"
             alt="Ilustração de Valério e Nathalie com o Heitor no colo, no quarto dele"
@@ -127,7 +126,7 @@ export function Final() {
             height={2528}
             sizes="(max-width: 780px) 88vw, 460px"
           />
-        </div>
+        </MolduraRetrato>
       </Reveal>
 
       <Reveal atraso={440}>
@@ -171,29 +170,15 @@ export function Final() {
           margin-top: clamp(1.5rem, 5vw, 2.5rem);
           color: #dce8f3;
         }
-        .familia {
-          margin: clamp(1rem, 4vw, 2rem) auto 0;
-          width: min(88%, 460px);
-          --dissolve: radial-gradient(
-            ellipse 64% 60% at 50% 46%,
-            #000 8%,
-            rgba(0, 0, 0, 0.92) 38%,
-            rgba(0, 0, 0, 0.45) 66%,
-            transparent 88%
-          );
-          -webkit-mask-image: var(--dissolve);
-          mask-image: var(--dissolve);
-        }
-        .familia :global(img) {
-          width: 100%;
-          height: auto;
-          display: block;
+        .final :global(.familia) {
+          margin: clamp(1.75rem, 5vw, 2.75rem) auto 0;
+          width: min(82%, 380px);
         }
         .pais {
           font-family: var(--font-mao);
           font-size: 1.05rem;
           color: rgba(209, 226, 243, 0.7);
-          margin-top: clamp(-3.5rem, -9vw, -1.5rem);
+          margin-top: clamp(1rem, 3vw, 1.5rem);
         }
         @media (prefers-reduced-motion: reduce) {
           .final :global(.estrela) { animation: none; opacity: 0.5; }
@@ -238,7 +223,8 @@ function Compartilhar() {
 
   async function enviar() {
     const url = window.location.origin;
-    const texto = `Chá de fraldas do Heitor — 20 de agosto, 19h30, em Olinda. ${url}`;
+    const { evento } = CONTEUDO;
+    const texto = `Chá de fraldas do Heitor — ${evento.data}, ${evento.hora}, em Olinda. ${url}`;
     if (navigator.share) {
       try {
         await navigator.share({ title: "Esperando Heitor", text: texto, url });

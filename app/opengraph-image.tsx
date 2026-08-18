@@ -9,7 +9,7 @@ import path from "path";
  * para um convite, é exatamente o certo. Nada de fonte de sistema: o gerador
  * de imagem não tem nenhuma, e o texto sairia em branco.
  */
-export const alt = "Esperando Heitor — 20 de agosto de 2026, 19h30, Olinda";
+export const alt = "Esperando Heitor — 22 de agosto de 2026, 19h30, Olinda";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -47,7 +47,7 @@ export default async function Imagem() {
         />
 
         <div style={{ display: "flex", fontSize: 54, color: "#7a5c3f", lineHeight: 1.3 }}>
-          20 de agosto de 2026
+          22 de agosto de 2026
         </div>
         <div style={{ display: "flex", fontSize: 44, color: "#9a7c5c", marginTop: 10 }}>
           19h30 · Pizzaria Atlântico, Olinda
