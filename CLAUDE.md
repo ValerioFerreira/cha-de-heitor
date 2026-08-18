@@ -294,11 +294,40 @@ A caixa vem em três componentes separados por causa disso: `CaixaFundo`,
 `CaixaFrente`, `CaixaTampa`, todos com o mesmo `viewBox` para empilharem
 exatamente.
 
-### Posições
+### Posições — duas regras que não podem ser quebradas
+
+**1. A posição da carta é derivada da do envelope.** Depois que ela entra,
+`dentroDoEnvelope(env)` calcula onde ela fica. Se as duas forem escritas à
+mão, o envelope sobe para dar lugar à caixa e a carta fica para trás,
+boiando sozinha no meio da tela.
+
+**2. Tudo que parte junto mora dentro de `.conjunto`, e é o `.conjunto` que
+voa.** Animar peça por peça não funciona: `translateY` em porcentagem é
+relativo à altura de *cada* elemento, então o envelope percorre uns 23% do
+palco enquanto a caixa percorre 65% — e elas se separam no ar. Já aconteceu.
 
 `posicao()` devolve **só** `left`/`width`/`top` em porcentagem. A opacidade fica
 no CSS de propósito: estilo inline venceria a regra do voo final e a caixa
 partiria sem sumir.
+
+### A aba do envelope
+
+O bolso é desenhado **antes** da aba no SVG. Invertendo a ordem, a aba
+fechada fica atrás do bolso e o envelope parece que nunca fecha.
+
+A dobra usa `transform-box: view-box` com origem na dobradiça (`110px 10px`,
+a borda de cima) e `perspective(560px)` no próprio `transform`. Sem a
+perspectiva, `rotateX` vira um espelhamento chapado em vez de uma aba
+tombando.
+
+### Como conferir a cena sem olhar
+
+O painel de preview às vezes compõe em escala errada e não dá para confiar
+no olho. Medir é mais seguro: a faixa realmente pintada da frente da caixa
+vai de `104/220` a `198/220` da altura do elemento. Ao fim da cena, a carta,
+o envelope e o presente têm que estar todos dentro dessa faixa. Os valores
+bons hoje são carta `[80.8, 88.7]`, envelope `[73, 90.4]`, presente
+`[74, 89]`, faixa `[72.4, 90.8]`.
 
 ---
 
