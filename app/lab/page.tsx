@@ -295,7 +295,7 @@ function SecaoTipografia() {
           Um novo capítulo está começando. E ele tem nome.
         </p>
         <p style={{ fontFamily: "var(--font-ui)", fontSize: "0.95rem", letterSpacing: "0.02em", color: "var(--color-tinta)", marginTop: "1.5rem" }}>
-          Instrument Sans · 20 de agosto de 2026 · 19h30 · Boi e Brasa, Olinda
+          Instrument Sans · 20 de agosto de 2026 · 19h30 · Pizzaria Atlântico, Olinda
         </p>
       </div>
 

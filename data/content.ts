@@ -32,9 +32,9 @@ export const CONTEUDO = {
     data: "20 de agosto de 2026",
     diaSemana: "quinta-feira",
     hora: "19h30",
-    local: "Restaurante Boi e Brasa",
+    local: "Pizzaria Atlântico",
     cidade: "Olinda, Pernambuco",
-    mapa: "https://maps.app.goo.gl/V1VQ7euBE2xp6gQAA",
+    mapa: "https://maps.app.goo.gl/w4tL2K3JvF5vce2m6",
     quando: "2026-08-20T19:30:00-03:00",
   },
 

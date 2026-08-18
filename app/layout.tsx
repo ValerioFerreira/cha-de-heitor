@@ -57,14 +57,14 @@ export const metadata: Metadata = {
     template: "%s · Esperando Heitor",
   },
   description:
-    "Chá de fraldas do Heitor — 20 de agosto de 2026, 19h30, Restaurante Boi e Brasa, Olinda. Confirme sua presença e escolha um presente.",
+    "Chá de fraldas do Heitor — 20 de agosto de 2026, 19h30, Pizzaria Atlântico, Olinda. Confirme sua presença e escolha um presente.",
   openGraph: {
     type: "website",
     locale: "pt_BR",
     siteName: "Esperando Heitor",
     title: "Esperando Heitor 💙",
     description:
-      "20 de agosto de 2026 · 19h30 · Boi e Brasa, Olinda. Confirme sua presença e escolha um presente.",
+      "20 de agosto de 2026 · 19h30 · Pizzaria Atlântico, Olinda. Confirme sua presença e escolha um presente.",
   },
   twitter: { card: "summary_large_image" },
 };

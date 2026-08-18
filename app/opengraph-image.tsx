@@ -50,7 +50,7 @@ export default async function Imagem() {
           20 de agosto de 2026
         </div>
         <div style={{ display: "flex", fontSize: 44, color: "#9a7c5c", marginTop: 10 }}>
-          19h30 · Boi e Brasa, Olinda
+          19h30 · Pizzaria Atlântico, Olinda
         </div>
       </div>
     ),

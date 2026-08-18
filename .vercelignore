@@ -1,0 +1,11 @@
+# Os originais entregues pelo responsável. Só servem para rodar
+# `npm run recortar` — o site lê apenas o que está em public/.
+images/
+audio/
+fonts/
+scripts/
+
+# documentação e sobras
+CLAUDE.md
+PROMPTS-ILUSTRACAO.md
+t.js
