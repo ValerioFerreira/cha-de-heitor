@@ -1,42 +1,123 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 /**
  * A música ambiente.
  *
- * Começa desligada e só toca depois que a pessoa pede — navegador nenhum
- * deixa tocar sozinho, e forçar isso seria briga perdida e desrespeitosa.
- * O estado fica guardado, então quem ligou uma vez continua com som ao voltar.
+ * Ela tenta tocar sozinha assim que o site abre. Só que **navegador nenhum
+ * deixa áudio com som começar antes de a pessoa interagir com a página** —
+ * é política do Chrome, do Safari e do Firefox, e não existe truque honesto
+ * que contorne isso. Às vezes a tentativa passa (quando a pessoa já visitou
+ * o site antes, ou já estava numa aba do mesmo domínio); quase sempre ela é
+ * recusada.
+ *
+ * Por isso são duas tentativas:
+ *
+ *   1. na abertura, direto — se o navegador deixar, entra na hora;
+ *   2. se for recusada, fica armada para o **primeiro toque** da pessoa,
+ *      seja qual for: tocar na tela, clicar, apertar uma tecla. Como o
+ *      convidado sempre encosta em alguma coisa nos primeiros segundos, na
+ *      prática a música entra sozinha.
+ *
+ * Rolagem não serve: rolar a página não conta como interação para liberar
+ * o áudio.
+ *
+ * Quem desligar no botão fica desligado, inclusive nas próximas visitas.
  */
+
+/** entre médio e baixo — presente, mas dá para conversar por cima */
+const VOLUME = 0.3;
+const LEMBRETE = "heitor-musica";
+
+/** os gestos que o navegador aceita como permissão para tocar som */
+const GESTOS = ["pointerdown", "touchstart", "keydown"] as const;
+
 export function Musica({ src = "/audio/ambiente.mp3" }: { src?: string }) {
   const audio = useRef<HTMLAudioElement>(null);
   const [tocando, setTocando] = useState(false);
   const [pronto, setPronto] = useState(false);
+  const desligouDeProposito = useRef(false);
 
-  useEffect(() => setPronto(true), []);
+  /** tenta iniciar em silêncio; quem sobe o volume é o efeito de baixo */
+  const tentarTocar = useCallback(async () => {
+    const el = audio.current;
+    if (!el || desligouDeProposito.current) return false;
+    try {
+      el.volume = 0;
+      await el.play();
+      return true;
+    } catch {
+      return false;
+    }
+  }, []);
 
+  // ── abertura ───────────────────────────────────────────────
+  useEffect(() => {
+    setPronto(true);
+    if (typeof window === "undefined") return;
+
+    if (localStorage.getItem(LEMBRETE) === "0") {
+      desligouDeProposito.current = true;
+      return;
+    }
+
+    let vivo = true;
+    let soltar = () => {};
+
+    const noGesto = () => {
+      tentarTocar().then((ok) => {
+        if (ok && vivo) {
+          soltar();
+          setTocando(true);
+        }
+      });
+    };
+
+    soltar = () => GESTOS.forEach((g) => window.removeEventListener(g, noGesto));
+
+    tentarTocar().then((ok) => {
+      if (!vivo) return;
+      if (ok) {
+        setTocando(true);
+        return;
+      }
+      // recusado: espera o primeiro gesto, qualquer que seja
+      GESTOS.forEach((g) => window.addEventListener(g, noGesto, { passive: true }));
+    });
+
+    return () => {
+      vivo = false;
+      soltar();
+    };
+  }, [tentarTocar]);
+
+  // ── ligar e desligar ───────────────────────────────────────
   useEffect(() => {
     const el = audio.current;
     if (!el || !pronto) return;
-    el.volume = 0;
     if (tocando) {
       el.play().catch(() => setTocando(false));
-      subir(el, 0.32);
-      localStorage.setItem("heitor-musica", "1");
+      subir(el, VOLUME);
     } else {
       descer(el, () => el.pause());
-      localStorage.removeItem("heitor-musica");
     }
   }, [tocando, pronto]);
 
+  function alternar() {
+    const proximo = !tocando;
+    desligouDeProposito.current = !proximo;
+    localStorage.setItem(LEMBRETE, proximo ? "1" : "0");
+    setTocando(proximo);
+  }
+
   return (
     <>
-      <audio ref={audio} src={src} loop preload="none" />
+      <audio ref={audio} src={src} loop preload="auto" />
       <button
         type="button"
         className="botao-musica"
-        onClick={() => setTocando((v) => !v)}
+        onClick={alternar}
         aria-pressed={tocando}
         aria-label={tocando ? "Desligar a música" : "Ligar a música"}
         title={tocando ? "Desligar a música" : "Ligar a música"}
@@ -106,19 +187,34 @@ export function Musica({ src = "/audio/ambiente.mp3" }: { src?: string }) {
   );
 }
 
+/**
+ * A rampa de volume anda por temporizador, não por `requestAnimationFrame`.
+ * O rAF pára quando a aba não está pintando quadros — e aí o volume ficava
+ * preso em zero, com a música tocando em silêncio para sempre.
+ */
+let rampa: ReturnType<typeof setInterval> | null = null;
+
+function pararRampa() {
+  if (rampa) clearInterval(rampa);
+  rampa = null;
+}
+
+/** entra devagar: um som que aparece de repente assusta */
 function subir(el: HTMLAudioElement, alvo: number) {
-  const passo = () => {
-    el.volume = Math.min(alvo, el.volume + 0.015);
-    if (el.volume < alvo) requestAnimationFrame(passo);
-  };
-  passo();
+  pararRampa();
+  rampa = setInterval(() => {
+    el.volume = Math.min(alvo, el.volume + 0.012);
+    if (el.volume >= alvo - 0.001) pararRampa();
+  }, 40);
 }
 
 function descer(el: HTMLAudioElement, fim: () => void) {
-  const passo = () => {
-    el.volume = Math.max(0, el.volume - 0.02);
-    if (el.volume > 0) requestAnimationFrame(passo);
-    else fim();
-  };
-  passo();
+  pararRampa();
+  rampa = setInterval(() => {
+    el.volume = Math.max(0, el.volume - 0.04);
+    if (el.volume <= 0.001) {
+      pararRampa();
+      fim();
+    }
+  }, 40);
 }

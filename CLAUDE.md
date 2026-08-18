@@ -493,6 +493,18 @@ nulidade.
 sintaxe do `.gitignore`: `images/` leva junto `public/images/`. Ancore sempre
 com `/images/`. Isso já apagou o `public/` inteiro de um deploy.
 
+**A rampa de volume da música não pode andar por `requestAnimationFrame`.**
+O rAF pára quando a aba não está pintando quadros — em segundo plano, ou no
+painel de preview. O volume ficava preso em zero e a música tocava em
+silêncio para sempre. Hoje a rampa anda por `setInterval`.
+
+**Autoplay de áudio com som é bloqueado por todo navegador** antes de a
+pessoa interagir com a página. `components/shared/musica.tsx` tenta tocar na
+abertura e, se for recusado, fica armado para o primeiro `pointerdown`,
+`touchstart` ou `keydown`. Rolagem não conta como interação. Não tente
+contornar isso — a decisão de tentar-e-esperar já é o limite do que dá para
+fazer com honestidade.
+
 **SVG com animação SMIL tem que entrar como `<img>`, não como `<Image>`.** A
 cegonha em `public/images/bebe-cegonha.svg` traz o próprio movimento (asas e
 balanço, em `animate`/`animateTransform`). O otimizador do Next não serve SVG
